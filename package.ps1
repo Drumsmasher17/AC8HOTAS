@@ -10,7 +10,7 @@ $scripts = @('main.lua','mapper.lua','actions.lua','session.lua','ac8_hotas_devi
 $hotas = [ordered]@{}
 foreach ($file in $scripts) { $hotas['AC8HOTAS/Scripts/'+$file] = Join-Path $PSScriptRoot ('mod\Scripts\'+$file) }
 $hotas['AC8HOTAS/bindings.lua'] = Join-Path $PSScriptRoot 'mod\bindings.lua'
-foreach ($file in @('README.md','LICENSE','INSTALL.md','THIRD_PARTY_NOTICES.md')) {
+foreach ($file in @('README.md','LICENSE','INSTALL.md','THIRD_PARTY_NOTICES.md','pic_1.png','pic_2.png')) {
     $hotas['AC8HOTAS/'+$file] = Join-Path $PSScriptRoot $file
 }
 $hotas['INSTALL.md'] = Join-Path $PSScriptRoot 'INSTALL.md'
@@ -54,7 +54,7 @@ try {
 $source = [ordered]@{}
 $sourceFiles = @('README.md','INSTALL.md','RELEASE_NOTES.md','PUBLISHING.md','VALIDATION.md','LICENSE',
     'THIRD_PARTY_NOTICES.md','.gitignore','build.cmd','package.ps1','src/devices.cpp',
-    'tests/test_mapper.py','tests/prepare_catalog.py','tests/test_package.py','mod/bindings.lua')
+    'tests/test_mapper.py','tests/prepare_catalog.py','tests/test_package.py','mod/bindings.lua','pic_1.png','pic_2.png')
 foreach ($file in $scripts) { if ($file.EndsWith('.lua')) { $sourceFiles += 'mod/Scripts/'+$file } }
 foreach ($file in $sourceFiles) { $source['AC8HOTAS/'+$file] = Join-Path $PSScriptRoot $file }
 Write-Package 'AC8HOTAS-0.1.0-source.zip' $source @()

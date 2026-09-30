@@ -43,6 +43,20 @@ Use **Throttle** for a continuous throttle lever; **AccelDecel** is a button
 command. Pitch, Roll, Yaw, Throttle, CameraPitch and CameraYaw accept axes.
 The other actions accept buttons or first-POV hat directions.
 
+## Configuration examples
+
+An example configuration with flight buttons, menu controls and axes assigned
+across multiple devices. The download starts with every action unbound; use your
+own detected device IDs when setting up bindings. The Ctrl+F9 shortcut shown is
+specific to the development setup; F5 reloads bindings in the released mod.
+
+![Example bindings.lua with buttons and axes assigned to multiple HOTAS devices](pic_1.png)
+
+The generated section at the bottom of the same file lists detected controllers,
+their capabilities and binding values you can copy into the editable section above.
+
+![Detected controllers with available axes, buttons, hats and copyable binding values](pic_2.png)
+
 ## Current limitations
 
 F5 refreshes the mod's inventory and bindings. Assigning a new device can still
@@ -74,6 +88,18 @@ script development; native DLL updates require a game restart. Numbered logs
 contain startup, explicit reload, lifecycle changes and errors, with no periodic
 input tracing. See [VALIDATION.md](VALIDATION.md) for testing scope.
 
-Own code is **CC0**; see [LICENSE](LICENSE). Developed with AI assistance.
-No game assets or UE4SS binaries are distributed. Bundled dependency notices
-and MinHook's license are retained.
+## License
+
+AC8HOTAS's own code and documentation are dedicated to the public domain under
+**CC0 1.0 Universal**, to the extent permitted by law. You can copy, modify,
+redistribute and use them commercially without asking permission or giving credit.
+Attribution is appreciated but not required. See [LICENSE](LICENSE) for the full terms.
+
+This mod was developed with AI assistance and is provided without warranty.
+The CC0 dedication applies only to rights the contributor can waive; it does not
+claim ownership of the game or third-party components.
+
+The bundled AC8AnalogYaw mod also uses CC0 for its own code. Its MinHook dependency
+keeps its separate BSD license and required notices. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). No game assets or UE4SS binaries
+are distributed.
