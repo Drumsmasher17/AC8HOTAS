@@ -13,7 +13,12 @@ cleanup runs well. POV support is implemented but not physically tested here.
 **Recommended download:** AC8HOTAS-0.1.0-with-AC8AnalogYaw-0.1.3.zip.
 This includes two independently enabled mods. AC8AnalogYaw supplies proportional
 yaw; AC8HOTAS supplies controller bindings. The standalone HOTAS download is
-also available. UE4SS is not included.
+also available. These mod-only downloads require UE4SS separately.
+
+**Fresh installation without UE4SS:** choose AC8HOTAS-0.1.0-full-install.zip.
+It includes the tested loader and both mods enabled. Follow INSTALL-FULL.md and
+copy its Game folder into the game installation. Do not overwrite an existing
+loader, settings or mod list; existing users should use a mod-only download.
 
 Read INSTALL.md before extracting. All default bindings are unassigned.
 Back up and retain your bindings.lua when updating. Newly assigned devices can

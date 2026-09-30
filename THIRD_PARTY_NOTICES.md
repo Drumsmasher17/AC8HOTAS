@@ -2,7 +2,11 @@
 
 AC8HOTAS's own source and documentation use CC0; see LICENSE.
 It uses Windows DirectInput APIs and the separately installed UE4SS runtime.
-No UE4SS binaries, Windows SDK files or game assets are bundled.
+The full-install download includes UE4SS.dll and its dwmapi.dll loader from the
+tested installation under the MIT license (copyright 2022 Narknon). Its license
+is retained at UE4SS/LICENSE; LOADER-PROVENANCE.md records the source and binary
+fingerprints. Mod-only downloads contain no UE4SS binaries. No Windows SDK files
+or game assets are bundled.
 
 The recommended download additionally includes AC8AnalogYaw 0.1.3, from
 https://github.com/Drumsmasher17/AC8AnalogueYaw. Its own code uses CC0; its

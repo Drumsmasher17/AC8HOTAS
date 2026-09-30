@@ -11,7 +11,12 @@ mods: AC8HOTAS handles bindings, and AC8AnalogYaw enables proportional yaw.
 A HOTAS-only download is also available for users who already have analog yaw
 or prefer the game's existing yaw behaviour.
 
-UE4SS is required separately. Follow [INSTALL.md](INSTALL.md) for installation,
+**New to UE4SS?** Choose `AC8HOTAS-0.1.0-full-install.zip`, which also includes
+the tested loader and enables both mods. Follow its `INSTALL-FULL.md`: copy its
+Game folder into the game installation, launch, configure bindings and press F5.
+Use this package only for a fresh installation without an existing loader.
+
+The other downloads require UE4SS separately. Follow [INSTALL.md](INSTALL.md) for installation,
 configuration, updates and troubleshooting. The bundled yaw mod is version 0.1.3
 from [AC8AnalogueYaw](https://github.com/Drumsmasher17/AC8AnalogueYaw).
 
@@ -101,5 +106,5 @@ claim ownership of the game or third-party components.
 
 The bundled AC8AnalogYaw mod also uses CC0 for its own code. Its MinHook dependency
 keeps its separate BSD license and required notices. See
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). No game assets or UE4SS binaries
-are distributed.
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The full-install download also
+includes UE4SS under its MIT license. No game assets are distributed.

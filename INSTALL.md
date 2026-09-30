@@ -2,11 +2,14 @@
 
 ## Choose a download
 
+- **Full installation:** `AC8HOTAS-0.1.0-full-install.zip` includes the loader
+  and both mods for a fresh installation. Follow its root INSTALL-FULL.md instead
+  of the mod-only steps below. Do not use it over an existing UE4SS installation.
 - **Recommended bundle:** AC8HOTAS 0.1.0 + AC8AnalogYaw 0.1.3. Device bindings
   plus proportional yaw. The two mods remain separate and can be disabled independently.
 - **HOTAS only:** use this if you already have AC8AnalogYaw, or only want bindings.
 
-UE4SS is required and is **not included**. This release was tested with the
+For the mod-only downloads, UE4SS is required and is **not included**. This release was tested with the
 game's working UE4SS v3.0.1 Beta installation (commit 03dbd5c0), on Windows x64.
 Its Lua API must support `package.loadlib`, `LoopInGameThreadAfterFrames` and
 ModRef shared variables. Other UE4SS builds have not been verified.
