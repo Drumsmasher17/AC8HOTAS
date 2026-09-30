@@ -1,0 +1,7 @@
+build/
+dist/
+mod/Scripts/*.dll
+mod/Scripts/devices.lua*
+mod/HOTAS-*.log
+mod/bindings.lua.bak
+__pycache__/
