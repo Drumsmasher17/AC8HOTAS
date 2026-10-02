@@ -2,10 +2,10 @@
 
 ## Choose a download
 
-- **Full installation:** `AC8HOTAS-0.1.1-full-install.zip` includes the loader
+- **Full installation:** `AC8HOTAS-0.2.0-full-install.zip` includes the loader
   and both mods for a fresh installation. Follow its root INSTALL-FULL.md instead
   of the mod-only steps below. Do not use it over an existing UE4SS installation.
-- **Recommended bundle:** AC8HOTAS 0.1.1 + AC8AnalogYaw 0.1.3. Device bindings
+- **Recommended bundle:** AC8HOTAS 0.2.0 + AC8AnalogYaw 0.1.3. Device bindings
   plus proportional yaw. The two mods remain separate and can be disabled independently.
 - **HOTAS only:** use this if you already have AC8AnalogYaw, or only want bindings.
 
@@ -49,6 +49,13 @@ ModRef shared variables. Other UE4SS builds have not been verified.
 6. Replace the desired `nil` entries with bindings, save, return to the game and
    press **F5**. You do not need to restart just to edit the config.
 
+At startup and on F5, AC8HOTAS clears the built-in Windows flight-stick profile
+assignments and actions in memory, then assigns compatible profile slots from
+`bindings.lua`. This is automatic; there is no separate reset button. The game
+does not save these edits, so restarting without AC8HOTAS restores its original
+profiles. Keyboard, mouse and standard gamepad mappings are not handled by this
+flight-stick profile table.
+
 Example (replace the placeholder with a detected device GUID):
 
 ```lua
@@ -79,13 +86,11 @@ or POV1_Up/Down/Left/Right. Only the first POV is supported by this route.
 
 - **New device does nothing:** press F5 first; if it remains inactive, reconnect
   the controller and try again. F5 does not yet rebuild all game-side device caches.
-- **Unsupported profile slot:** the mod rejects the config before applying it.
-  Since 0.1.1 the error names the missing actions, controller and selected profile.
-  Include that complete error in a bug report. Repeated F5 presses do not create
-  missing slots. A matching built-in device profile remains the preferred profile
-  after a restart, so restarting will not fix missing slots in that stock profile.
-  Some game profiles cannot accommodate every listed action. A restart with the
-  completed config can allow a different profile to be selected; it is not guaranteed.
+- **No compatible profile slot:** the mod checks the built-in flight-stick
+  profiles and can reuse a different profile slot if the device's own template
+  lacks an action. If no slot exposes one of the requested actions, it rejects
+  the config before changing the profile table. Include the full error from the
+  newest log in a bug report. The action slot itself cannot be invented by the mod.
 - **Duplicate identical models:** separate devices with the same product ID are
   currently rejected. The game chooses profiles by product ID.
 - **Wrong direction:** change the axis's `invert` value and press F5.
@@ -110,6 +115,6 @@ To disable a mod, set its mod-list entry to 0 (and disable it in your mod manage
 if used), then restart. To uninstall, close the game and remove only that mod's
 folder. Do not delete the shared UE4SS loader or other mods.
 
-F5 reloads bindings. Lua developers can optionally configure UE4SS's native hot
+F5 reloads bindings and reapplies the session profile reset. Lua developers can optionally configure UE4SS's native hot
 reload shortcut; our development setup uses Ctrl+F9, but the download does not
 change your UE4SS settings. Native DLL updates require restarting the game.

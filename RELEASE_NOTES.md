@@ -1,50 +1,58 @@
-# AC8HOTAS 0.1.1
+# AC8HOTAS 0.2.0
 
 ## What's changed
 
-Profile-mapping errors now name every missing action on the rejected device,
-the controller name and product ID, and the selected game profile. This replaces
-the unhelpful "Existing device profile lacks requested action" message and also
-covers previously assigned profiles after editing bindings.
+AC8HOTAS now takes ownership of the game's Windows flight-stick profiles for the
+current session. On startup, and whenever you press F5, it clears the built-in
+flight-stick assignments and actions in memory, then assigns clean compatible
+profile slots to the devices and actions listed in `bindings.lua`. The change is
+not saved by the game; removing or disabling AC8HOTAS and restarting restores
+the game's original profiles.
 
-This is a diagnostic update, not a fix for missing profile slots. Mapping
-behaviour is unchanged, and rejected configurations still make no profile edits.
-No periodic logging or input tracing has been added. Analog Yaw remains 0.1.3.
+The mapper can borrow a compatible built-in profile slot when a device's own
+template lacks an action, such as Missile or Platform on some throttles. If none
+of the available slots exposes a requested action, the config is rejected before
+the profile table is changed and the log lists the checked slots.
 
-## Updating from 0.1.0
+F5 remains the only user action needed to refresh device discovery and bindings.
+The profile reset is automatic at startup and is not bound to a separate key.
+The optional F7 profile dump is read-only and runs only when requested. No
+per-frame or periodic diagnostic logging is enabled.
 
-Close the game, replace AC8HOTAS's Scripts folder from a mod-only download,
-and keep your existing bindings.lua. Restart the game; F5 alone cannot load
-updated Lua code. If a mapping is rejected, send the full error from the newest
-AC8HOTAS/HOTAS-*.log together with your bindings and generated device list.
-Existing UE4SS users should not reinstall the full loader bundle.
+## Updating from 0.1.1
+
+Close the game, replace AC8HOTAS's Scripts folder with the one from the 0.2.0
+mod-only download, and keep your existing `bindings.lua`. Start the game again;
+F5 reloads the config but does not reload changed Lua code. Existing UE4SS users
+should not reinstall the full loader bundle. If something fails, include the
+newest `AC8HOTAS/HOTAS-*.log` in a bug report.
 
 ## About the mod
 
 Bind separate flight sticks, throttles and pedals through the game's native
-flight-stick profiles, with no virtual combined joystick required for supported
-devices. Includes a grouped, fully unbound config, detected-device reference,
-axis inversion, button/hat inputs and F5 config reload.
+flight-stick input path, with no combined virtual joystick required for
+supported devices. The download includes a grouped, unbound config, generated
+device capabilities, axis inversion, button/hat inputs and F5 config reload.
 
-Proportional throttle, full braking, pitch/roll, camera axes and button mappings
-have been exercised in game. Normal gameplay no longer repeatedly scans the
-global object list or performs diagnostic logging; the user confirmed the
-cleanup runs well. POV support is implemented but not physically tested here.
+The user confirmed that pitch, roll, yaw, throttle, camera axes and button
+bindings continued to work after all other Windows flight-stick profile actions
+were neutralized on a setup with three VPC devices. F7's profile dump showed
+only those configured profiles active. Physical POV hats and some optional
+actions remain untested.
 
-**Recommended download:** AC8HOTAS-0.1.1-with-AC8AnalogYaw-0.1.3.zip.
-This includes two independently enabled mods. AC8AnalogYaw supplies proportional
-yaw; AC8HOTAS supplies controller bindings. The standalone HOTAS download is
-also available. These mod-only downloads require UE4SS separately.
+**Recommended download:** `AC8HOTAS-0.2.0-with-AC8AnalogYaw-0.1.3.zip`. It
+contains two separately enabled mods. AC8AnalogYaw supplies proportional yaw;
+AC8HOTAS supplies device bindings. A HOTAS-only download is also available.
+Both mod-only downloads require UE4SS separately.
 
-**Fresh installation without UE4SS:** choose AC8HOTAS-0.1.1-full-install.zip.
-It includes the tested loader and both mods enabled. Follow INSTALL-FULL.md and
-copy its Game folder into the game installation. Do not overwrite an existing
-loader, settings or mod list; existing users should use a mod-only download.
+**Fresh installation without UE4SS:** choose
+`AC8HOTAS-0.2.0-full-install.zip`. It includes the tested loader and both mods
+enabled. Follow `INSTALL-FULL.md`; do not overwrite an existing loader setup.
 
-Read INSTALL.md before extracting. All default bindings are unassigned.
-Back up and retain your bindings.lua when updating. Newly assigned devices can
-still need a USB reconnect; duplicate identical-product devices are unsupported.
-Game updates may break compatibility, particularly the native analog-yaw helper.
+All default bindings are unassigned. Back up and keep `bindings.lua` when
+updating. Duplicate devices with the same product ID cannot currently be
+distinguished. Game updates may break compatibility, especially for the native
+analog-yaw helper.
 
-The bundle contains the existing AC8AnalogYaw 0.1.3 release files unchanged.
-Its upstream source is https://github.com/Drumsmasher17/AC8AnalogueYaw.
+The bundle copies the existing AC8AnalogYaw 0.1.3 files unchanged. Its source is
+https://github.com/Drumsmasher17/AC8AnalogueYaw.

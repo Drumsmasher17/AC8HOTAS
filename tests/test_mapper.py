@@ -57,13 +57,11 @@ a.DeviceInputItemMap=wrap(items)
 config.bindings={CameraPitch={device='d1',input='Y'},CameraYaw={device='d1',input='X'}}
 local g,p=mapper.validate(config,catalog)
 for _,ownership in ipairs({{}, {d1={name='A',product=a.DeviceID_Win}}}) do
- local ok,err=pcall(mapper.apply,sub,g,p,ownership,silent)
- assert(not ok)
- for _,fragment in ipairs({'CameraPitch, CameraYaw','Throttle (0x81963344)','profile: A','No mappings applied'}) do
-  assert(tostring(err):find(fragment,1,true),tostring(err))
- end
- assert(a.slots[0].InputType==12 and a.slots[0].ButtonIndex==11)
- assert(b.DeviceID_Win=='0x22220002' and b.slots[0].InputType==12)
+ local allocated=mapper.apply(sub,g,p,ownership,silent)
+ assert(allocated.d1.name=='B') -- A lacks requested action slots; use a compatible donor.
+ assert(b.DeviceID_Win=='0x81963344' and b.slots[47].InputType==2 and b.slots[48].InputType==1)
+ assert(a.DeviceID_Win=='' and a.slots[0].InputType==0)
+ assert(untouched.DeviceID_Win=='' and untouched.slots[0].InputType==0)
 end
 ''')
 lua.execute(SETUP)
@@ -75,7 +73,7 @@ assert(a.DeviceID_Win=='0x81963344' and b.DeviceID_Win=='0x01F83344')
 assert(a.slots[45].InputType==1 and a.slots[45].AxisInputOption==0)
 assert(b.slots[43].InputType==3 and b.slots[43].AxisInputOption==1)
 assert(a.slots[0].InputType==0 and b.slots[0].InputType==0)
-assert(untouched.slots[0].InputType==12 and untouched.DeviceID_Win=='0x33330003')
+assert(untouched.slots[0].InputType==0 and untouched.DeviceID_Win=='')
 config.bindings.Yaw.invert=true
 g,p=mapper.validate(config,catalog); owned=mapper.apply(sub,g,p,owned,silent)
 assert(a.slots[45].AxisInputOption==1)
@@ -92,7 +90,7 @@ assert(not pcall(mapper.validate,config,catalog)); catalog.devices[4]=nil
 config.bindings.Yaw=nil
 g,p=mapper.validate(config,catalog); owned=mapper.apply(sub,g,p,owned,silent)
 assert(a.slots[45].InputType==0 and a.slots[0].InputType==0)
-assert(a.DeviceID_Win=='0x81963344') -- never restore stock underneath a cached device
+assert(a.DeviceID_Win=='') -- removed devices release their Windows profile for this session
 config.bindings.Yaw={device='d1',input='X',invert=false}
 g,p=mapper.validate(config,catalog); owned=mapper.apply(sub,g,p,owned,silent)
 assert(a.slots[45].InputType==1)

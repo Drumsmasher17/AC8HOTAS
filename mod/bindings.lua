@@ -13,8 +13,10 @@
 -- Axis mode="minus_one_to_one": -1 / 0 / +1; mode="zero_to_one": 0 / 0.5 / 1.
 -- Mode defaults to minus_one_to_one except Throttle, which defaults to zero_to_one.
 
--- Not every game profile has slots for every action. Unsupported slots are rejected.
--- Existing device assignments may still require a USB reconnect when adding a new device.
+-- At startup and on F5, AC8HOTAS clears Windows flight-stick mappings in memory,
+-- then assigns clean compatible game profile slots from this file. Nothing is saved.
+-- A compatible slot must still exist for each action you bind; the mod can reuse
+-- another built-in flight-stick slot when a device's own template lacks an action.
 
 return {
     version = 1,
@@ -46,8 +48,12 @@ return {
         FaceButtonBottom = nil,
         FaceButtonLeft = nil,
 
+        -- Pause and SpecialRight can share a button. SpecialRight is used for hold-to-skip prompts.
         Pause = nil,
-        Platform = nil,
+        SpecialRight = nil,
+
+        -- Optional High-G turn button; zero throttle can also trigger this.
+        AccelDecel = nil,
 
         -- Axis Controls
         -- nil means unbound. Replace nil with a binding from the device list.
@@ -61,14 +67,13 @@ return {
 
         -- Optional & Untested Controls
         AutoPilot = nil,
-        AccelDecel = nil, -- Button command; use Throttle for a continuous axis.
+        Platform = nil,
         LeftShoulder = nil,
         RightShoulder = nil,
         LeftTrigger = nil,
         RightTrigger = nil,
         LeftThumbstick = nil,
         RightThumbstick = nil,
-        SpecialRight = nil,
         SpecialLeft = nil,
         TouchPad = nil,
         ExtraButton_01 = nil,

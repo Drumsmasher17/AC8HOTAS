@@ -1,7 +1,8 @@
--- AC8HOTAS 0.1.1: explicit config reload, early profile application.
+-- AC8HOTAS 0.2.0: session-only flight-stick profile reset and explicit config reload.
 local dir=assert(debug.getinfo(1,'S').source:sub(2):match('^(.*[/\\])'))
 local root=dir..'../'
 local mapper=assert(loadfile(dir..'mapper.lua'))()
+local profileDump=assert(loadfile(dir..'profile_dump.lua'))()
 local sequence=1
 while true do
     local f=io.open(root..string.format('HOTAS-%05d.log',sequence),'r')
@@ -82,9 +83,11 @@ local function reload()
     end
     grouped,products=g,p
     saveSession()
-    log('Config accepted. '..(sub and 'Profile fields applied; test device recognition without reconnecting.' or 'Waiting for flight-stick subsystem.'))
+    log('Config accepted. '..(sub and 'Session flight-stick profiles rebuilt from bindings.lua.' or 'Waiting for flight-stick subsystem.'))
 end
 RegisterKeyBind(Key.F5,function() if session.current() then requested=true end end)
+-- Temporary investigation hotkey. The dump is explicit and read-only.
+profileDump.register(dir,Key.F7,RegisterKeyBind,FindAllOf)
 -- Stable gameplay only checks the cached object's validity/address. No repeated
 -- global object enumeration, device scan, file access, serialization, or logging.
 local frame=0
@@ -117,4 +120,4 @@ LoopInGameThreadAfterFrames(1,function()
     end)
     if not ok then failed=true; saveSession(); log('Stopped after lifecycle error: '..tostring(err)) end
 end)
-log('AC8HOTAS 0.1.1 ready. F5 refreshes device catalog and applies saved bindings. No automatic file reload.')
+log('AC8HOTAS 0.2.0 ready. Startup applies bindings; F5 refreshes the device catalog and rebuilds session profiles from bindings.lua.')

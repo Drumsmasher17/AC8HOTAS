@@ -1,4 +1,4 @@
--- Reflected profile mapper. No container resizing, executable patches, or device resets.
+-- Reflected profile mapper. No container resizing, executable patches, or physical device resets.
 local M={}
 local dir=assert(debug.getinfo(1,'S').source:sub(2):match('^(.*[/\\])'))
 M.actions=assert(loadfile(dir..'actions.lua'))()
@@ -82,102 +82,115 @@ function M.apply(subsystem,grouped,products,owned,log)
         for item in pairs(g.bindings) do if not p.items[item] or #p.items[item]==0 then return false end end
         return true
     end
-    local function requireFits(name,g,ownedProfile)
-        local p=profiles[name]
+    local function missingActions(p,g)
         local missing={}
         for _,item in ipairs(keys(g.bindings)) do
             if not p.items[item] or #p.items[item]==0 then
                 missing[#missing+1]=g.bindings[item].action
             end
         end
-        if #missing>0 then
-            error(string.format('Existing %sprofile lacks requested action slots: %s | device: %s (%s) | profile: %s. No mappings applied by this attempt.',
-                ownedProfile and 'owned ' or 'device ',table.concat(missing,', '),g.device.name,g.device.product,name))
-        end
+        return missing
     end
     for _,id in ipairs(keys(grouped)) do
         local g=grouped[id]; local name
-        if owned[id] then
-            name=owned[id].name
-            assert(profiles[name] and profiles[name].id==g.device.product,'Owned profile changed externally')
-            requireFits(name,g,true)
-        else
-            for n,p in pairs(profiles) do
-                if p.id==g.device.product then
-                    assert(not name,'Ambiguous device profile'); name=n
-                end
-            end
-            if name then requireFits(name,g,false) end
-            if not name then
-                for _,n in ipairs(keys(profiles)) do
-                    local p=profiles[n]; local reserved=false
-                    for _,v in pairs(owned) do if v.name==n then reserved=true end end
-                    if n~='Default' and not used[n] and not reserved and not products[p.id] and fits(p,g) then name=n; break end
-                end
+        -- Reuse the prior allocation when it still has every requested action.
+        local prior=owned[id]
+        if prior and profiles[prior.name] and fits(profiles[prior.name],g) and not used[prior.name] then
+            name=prior.name
+        end
+        -- Prefer the device's own native template if it supports this config.
+        if not name then
+            for _,n in ipairs(keys(profiles)) do
+                local p=profiles[n]
+                if n~='Default' and p.id==g.device.product and not used[n] and fits(p,g) then name=n; break end
             end
         end
-        assert(name,'No unoccupied profile supports all requested actions for '..g.device.name)
+        -- The bindings file owns the Windows flight-stick map for this session.
+        -- Any compatible native slot can be repurposed when the device template
+        -- lacks an action (for example, Missile or Platform on some throttles).
+        if not name then
+            for _,n in ipairs(keys(profiles)) do
+                local p=profiles[n]
+                if n~='Default' and not used[n] and fits(p,g) then name=n; break end
+            end
+        end
+        if not name then
+            local requested,checked={},{}
+            for _,item in ipairs(keys(g.bindings)) do requested[#requested+1]=g.bindings[item].action end
+            for _,n in ipairs(keys(profiles)) do
+                local p=profiles[n]
+                if n~='Default' then
+                    local missing=missingActions(p,g)
+                    checked[#checked+1]=n..' (missing '..(#missing>0 and table.concat(missing,', ') or 'profile already allocated')..')'
+                end
+            end
+            error('No compatible flight-stick profile slot for '..g.device.name..' ('..g.device.product..'); requested actions: '..
+                table.concat(requested,', ')..'. Checked: '..table.concat(checked,'; ')..'. No mappings applied by this attempt.')
+        end
         assert(not used[name],'Profile allocation collision')
         selected[id]=name; used[name]=true; nextOwned[id]={name=name,product=g.device.product}
     end
-    -- Previously owned profiles remain neutral when removed. Never restore stock bindings
-    -- underneath a device which may still hold a cached association with that profile.
-    for id,v in pairs(owned) do
-        assert(profiles[v.name] and profiles[v.name].id==v.product,'Owned profile changed externally')
-        nextOwned[id]=nextOwned[id] or v
-    end
-    local edits,neutralOptions={},{}
+    local edits={}
     local function add(obj,field,value)
         local old=field=='DeviceID_Win' and str(obj[field]) or obj[field]
         assert(type(old)==type(value),'Unexpected type for '..field)
         edits[#edits+1]={obj=obj,field=field,value=value,old=old}
     end
-    for _,id in ipairs(keys(nextOwned)) do
-        local p=profiles[nextOwned[id].name]; local g=grouped[id]
+    -- Reset each flight-stick profile's Windows assignment and action slots in
+    -- memory. Keep Default's zero-ID fallback and the console-specific IDs.
+    for _,name in ipairs(keys(profiles)) do
+        local p=profiles[name]
+        if name~='Default' then add(p.data,'DeviceID_Win','') end
         for _,item in ipairs(keys(p.items)) do
-            for i,s in ipairs(p.items[item]) do
-                local b=g and g.bindings[item]
+            for _,s in ipairs(p.items[item]) do
                 -- None still runs through conversion in the native evaluator.
                 -- Throttle accumulates (value - 0.5), so its neutral output is
                 -- 0.5: None + Convert. Other actions need None + Standard = 0.
-                neutralOptions[s]=item==46 and 4 or 0
                 add(s,'InputType',0)
-                add(s,'AxisInputOption',neutralOptions[s])
+                add(s,'AxisInputOption',item==46 and 4 or 0)
                 add(s,'ButtonIndex',0)
                 add(s,'EnableButtonIndex',0); add(s,'DisableButtonIndex',0)
-                if b and i==1 then
-                    add(s,'AxisInputOption',b.option)
-                    add(s,'ButtonIndex',b.index)
-                end
             end
         end
-        add(p.data,'DeviceID_Win',nextOwned[id].product)
     end
+    -- Assign one clean slot per configured device and write its explicit binds.
     for _,id in ipairs(keys(grouped)) do
         local p=profiles[selected[id]]
+        add(p.data,'DeviceID_Win',grouped[id].device.product)
         for _,item in ipairs(keys(grouped[id].bindings)) do
-            add(p.items[item][1],'InputType',grouped[id].bindings[item].input)
+            local b=grouped[id].bindings[item]
+            add(p.items[item][1],'InputType',b.input)
+            add(p.items[item][1],'AxisInputOption',b.option)
+            add(p.items[item][1],'ButtonIndex',b.index)
         end
     end
-    local applied=0
     local ok,err=pcall(function()
         for i,e in ipairs(edits) do
-            applied=i; e.obj[e.field]=e.value
+            e.obj[e.field]=e.value
             local read=e.field=='DeviceID_Win' and str(e.obj[e.field]) or e.obj[e.field]
             assert(read==e.value,'Readback failed for '..e.field)
         end
     end)
     if not ok then
-        -- Neutralize touched inputs rather than restore potentially cached stock actions.
-        for i=1,applied do
-            local e=edits[i]
-            if e.field=='InputType' then
-                for field,value in pairs({InputType=0,AxisInputOption=neutralOptions[e.obj],ButtonIndex=0,EnableButtonIndex=0,DisableButtonIndex=0}) do
-                    pcall(function() e.obj[field]=value end)
+        -- Leave a safe, unassigned subsystem if any reflected write fails.
+        for _,name in ipairs(keys(profiles)) do
+            local p=profiles[name]
+            if name~='Default' then pcall(function() p.data.DeviceID_Win='' end) end
+            for item,settings in pairs(p.items) do
+                local option=item==46 and 4 or 0
+                for _,s in ipairs(settings) do
+                    for field,value in pairs({InputType=0,AxisInputOption=option,ButtonIndex=0,EnableButtonIndex=0,DisableButtonIndex=0}) do
+                        pcall(function() s[field]=value end)
+                    end
                 end
             end
         end
         error('Apply failed; touched inputs neutralized. Restart before retrying: '..tostring(err))
+    end
+    if log then
+        for _,id in ipairs(keys(grouped)) do
+            log('Assigned '..grouped[id].device.name..' ('..grouped[id].device.product..') to clean profile slot '..selected[id])
+        end
     end
     return nextOwned
 end

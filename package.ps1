@@ -6,7 +6,7 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $dist = Join-Path $PSScriptRoot 'dist'
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
-$scripts = @('main.lua','mapper.lua','actions.lua','session.lua','ac8_hotas_devices_001.dll')
+$scripts = @('main.lua','mapper.lua','actions.lua','session.lua','profile_dump.lua','ac8_hotas_devices_001.dll')
 $hotas = [ordered]@{}
 foreach ($file in $scripts) { $hotas['AC8HOTAS/Scripts/'+$file] = Join-Path $PSScriptRoot ('mod\Scripts\'+$file) }
 $hotas['AC8HOTAS/bindings.lua'] = Join-Path $PSScriptRoot 'mod\bindings.lua'
@@ -34,7 +34,7 @@ function Write-Package($Name, $Files, $ExtraEntries) {
     Write-Output $path
 }
 
-Write-Package 'AC8HOTAS-0.1.1.zip' $hotas @()
+Write-Package 'AC8HOTAS-0.2.0.zip' $hotas @()
 # Dependency files are copied unchanged from a separately versioned release.
 # Do not embed game files, personal config, UE4SS settings, or a global mod list.
 $yawNames = @('AC8AnalogYaw/Scripts/main.lua','AC8AnalogYaw/Scripts/ac8_analog_yaw_013.dll',
@@ -48,7 +48,7 @@ try {
         if (-not $entry) { throw "Analog yaw archive missing $name" }
         $extras += $entry
     }
-    Write-Package 'AC8HOTAS-0.1.1-with-AC8AnalogYaw-0.1.3.zip' $hotas $extras
+    Write-Package 'AC8HOTAS-0.2.0-with-AC8AnalogYaw-0.1.3.zip' $hotas $extras
 } finally { $yaw.Dispose() }
 
 $source = [ordered]@{}
@@ -59,7 +59,7 @@ $sourceFiles = @('README.md','INSTALL.md','RELEASE_NOTES.md','PUBLISHING.md','VA
     'full-install/LOADER-PROVENANCE.md','full-install/UE4SS-LICENSE.txt','full-install/UE4SS-settings.ini')
 foreach ($file in $scripts) { if ($file.EndsWith('.lua')) { $sourceFiles += 'mod/Scripts/'+$file } }
 foreach ($file in $sourceFiles) { $source['AC8HOTAS/'+$file] = Join-Path $PSScriptRoot $file }
-Write-Package 'AC8HOTAS-0.1.1-source.zip' $source @()
-$names = @('AC8HOTAS-0.1.1.zip','AC8HOTAS-0.1.1-with-AC8AnalogYaw-0.1.3.zip','AC8HOTAS-0.1.1-source.zip')
+Write-Package 'AC8HOTAS-0.2.0-source.zip' $source @()
+$names = @('AC8HOTAS-0.2.0.zip','AC8HOTAS-0.2.0-with-AC8AnalogYaw-0.1.3.zip','AC8HOTAS-0.2.0-source.zip')
 $hashes = foreach ($name in $names) { (Get-FileHash -LiteralPath (Join-Path $dist $name) -Algorithm SHA256).Hash+'  '+$name }
 [IO.File]::WriteAllLines((Join-Path $dist 'SHA256SUMS.txt'),$hashes,[Text.Encoding]::ASCII)

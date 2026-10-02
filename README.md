@@ -11,7 +11,7 @@ mods: AC8HOTAS handles bindings, and AC8AnalogYaw enables proportional yaw.
 A HOTAS-only download is also available for users who already have analog yaw
 or prefer the game's existing yaw behaviour.
 
-**New to UE4SS?** Choose `AC8HOTAS-0.1.1-full-install.zip`, which also includes
+**New to UE4SS?** Choose `AC8HOTAS-0.2.0-full-install.zip`, which also includes
 the tested loader and enables both mods. Follow its `INSTALL-FULL.md`: copy its
 Game folder into the game installation, launch, configure bindings and press F5.
 Use this package only for a fresh installation without an existing loader.
@@ -29,7 +29,11 @@ hats, menu controls, axes and optional controls.
 
 Copy a device binding from the generated list into an action, save the file,
 and press **F5** in the game. You can edit and apply bindings during the same
-session without restarting. For example:
+session without restarting. At startup and on F5, AC8HOTAS clears the built-in
+Windows flight-stick assignments and actions in memory, then assigns clean
+compatible game profile slots from this file. The game does not save these
+changes; restarting without AC8HOTAS restores its original profiles. There is
+no separate reset key. For example:
 
 ```lua
 Roll = { device="{detected GUID}", input="X", invert=false },
@@ -64,14 +68,17 @@ their capabilities and binding values you can copy into the editable section abo
 
 ## Current limitations
 
-F5 refreshes the mod's inventory and bindings. Assigning a new device can still
-require a USB reconnect because the game caches device associations.
+F5 refreshes the mod's device inventory and bindings. Assigning a newly
+connected device can still require a USB reconnect because the game may cache
+device discovery.
 Controllers sharing the same product ID cannot currently be mapped separately.
 Only the first POV hat is supported, and axis deadzones are not configurable.
 
-The list exposes the game's action names, but their effects depend on context,
-and not every native profile has slots for every action. Unsupported mappings
-are rejected. Optional actions and physical POV hats have not all been tested.
+The list exposes the game's action names, but their effects depend on context.
+If a device's native template lacks an action, AC8HOTAS can reuse another
+built-in flight-stick profile slot that has it. If no available slot has the
+requested action, the config is rejected before profile changes are applied.
+Optional actions and physical POV hats have not all been tested.
 
 Game updates may break either mod. AC8AnalogYaw hooks native game code and checks
 the target before applying; a changed game build can still cause incompatibility
@@ -91,7 +98,8 @@ separate AC8AnalogYaw 0.1.3 ZIP; see [PUBLISHING.md](PUBLISHING.md).
 F5 reloads configuration only. UE4SS Lua hot reload can be enabled separately for
 script development; native DLL updates require a game restart. Numbered logs
 contain startup, explicit reload, lifecycle changes and errors, with no periodic
-input tracing. See [VALIDATION.md](VALIDATION.md) for testing scope.
+input tracing. F7 writes a read-only flight-stick profile snapshot on demand.
+See [VALIDATION.md](VALIDATION.md) for testing scope.
 
 ## License
 

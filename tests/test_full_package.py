@@ -6,7 +6,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 prefix = 'Game/Binaries/Win64/'
-with zipfile.ZipFile(root/'dist/AC8HOTAS-0.1.1-full-install.zip') as z, zipfile.ZipFile(root/'dist/AC8HOTAS-0.1.1-with-AC8AnalogYaw-0.1.3.zip') as mods:
+with zipfile.ZipFile(root/'dist/AC8HOTAS-0.2.0-full-install.zip') as z, zipfile.ZipFile(root/'dist/AC8HOTAS-0.2.0-with-AC8AnalogYaw-0.1.3.zip') as mods:
     assert z.testzip() is None
     names = z.namelist()
     assert len(names) == len(set(names))

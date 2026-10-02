@@ -1,7 +1,7 @@
 # AC8HOTAS full installation
 
 For a fresh installation with no UE4SS loader already installed. Includes
-AC8HOTAS 0.1.1, AC8AnalogYaw 0.1.3 and the locally tested UE4SS loader build.
+AC8HOTAS 0.2.0, AC8AnalogYaw 0.1.3 and the locally tested UE4SS loader build.
 Both mods are enabled. All controller bindings start unassigned.
 
 1. Close the game. In Steam, open the game's installed files using Browse.
@@ -18,7 +18,10 @@ Both mods are enabled. All controller bindings start unassigned.
    and press **F5** in game. No restart is required for config edits.
 
 See `Game/Binaries/Win64/UE4SS/Mods/AC8HOTAS/INSTALL.md` for binding examples
-and troubleshooting. A newly assigned device may still require a USB reconnect.
+and troubleshooting. At startup and each F5 refresh, AC8HOTAS clears Windows
+flight-stick profile bindings in memory and applies the compatible assignments
+from `bindings.lua`; no separate reset key is needed. A newly connected device
+may still require a USB reconnect if the game has cached its device discovery.
 Analog yaw applies automatically; there is no activation key.
 
 The full package disables UE4SS developer hot reload, automatic script reload

@@ -1,41 +1,41 @@
-# Release validation — 0.1.1
-
-The 0.1.1 change adds error detail only. Regression coverage exercises both
-matching built-in and previously owned profiles, absent actions and empty action
-arrays, deterministic missing-action names, device/profile identity and rejection
-without mutation. The reported X-56 configuration still needs a user test to
-identify its missing actions; this release does not claim to fix its mappings.
+# Release validation — 0.2.0
 
 ## In-game evidence
 
-The local Windows installation has been tested with multiple VPC devices.
-The user confirmed pitch, roll, camera axes, yaw input routing, button bindings,
-F5 config refresh and UE4SS Lua reload. Continuous throttle reaches full braking
-and responds proportionally at intermediate positions. Earlier diagnostic logs
-also recorded fractional brake/acceleration values at both input and aircraft
-stages. No extra throttle hook is required.
+The user tested AC8HOTAS with three VPC devices: a throttle, stick and rudder
+pedals. Startup/F5 assigned each device to a compatible built-in flight-stick
+profile. After F5, the user reported that all configured controls continued to
+work.
 
-After removing recurring diagnostic output and repeated global object scans,
-the user reported that the mod was working very well. No formal frame-time
-benchmark was performed.
+An on-demand F7 profile dump showed 18 profile entries. The three configured
+Windows devices were assigned to `HR_FlightStick_PC`, `TM_FlightHotasNEO` and
+`HR_FlightStick_PS5`; every other Windows flight-stick profile was unassigned
+and had neutral actions. The `Default` profile kept its zero-ID fallback but had
+neutral actions. PS5 and Xbox-specific profile IDs were preserved. The dump is
+available in the user's game installation as `ProfileDump-002.txt`.
 
-AC8AnalogYaw 0.1.3 was tested separately during its development. Packaging copies
-its release files unchanged. The final combined distribution still needs a fresh
-installation smoke test before public release.
+Earlier in-game testing covered proportional throttle and full braking,
+pitch/roll, camera axes, yaw input routing, inversion, buttons, F5 config reload
+and UE4SS Lua reload. Physical POV hats and some optional actions remain
+untested. No formal frame-time benchmark was performed; periodic input logging
+and tracing are absent.
+
+AC8AnalogYaw 0.1.3 was tested separately during development. Packaging copies
+its release files unchanged. A clean-folder installation smoke test of the
+combined 0.2.0 package and a fresh full-install smoke test remain to be done
+before publication.
 
 ## Automated coverage
 
-The Lua mock suite covers multiple devices, axis conversions and inversion,
-one-based button/slider selection, POV direction mapping, unused-slot
-neutralization, malformed/missing/duplicate-device rejection, unavailable slots,
-removal and re-addition, write failures, config reload, subsystem replacement,
-and ownership across Lua reload. Old callbacks become inert. A stable 900-callback
-run performs no additional global object searches.
+The Lua mock suite covers multiple devices, native-template fallback when an
+action slot is missing, session profile clearing, axis conversions and
+inversion, buttons/sliders, POV directions, neutral unassigned actions,
+malformed/missing/duplicate-device rejection, write failures, config reload,
+subsystem replacement and ownership across Lua reload. Package checks verify
+all 49 default actions are unbound, required scripts are present, no personal
+GUIDs/runtime catalogs/logs are shipped, the analog-yaw bundle matches its
+upstream release, and checksums match.
 
-Package checks verify all 49 default actions are unbound, no personal GUIDs or
-runtime catalogs/logs are shipped, source archives contain no binaries, bundled
-yaw files match the upstream archive byte for byte, and published checksums match.
-
-Mocks establish script behaviour, not the behaviour of every device or action
-inside the game. Physical POV hats and all optional game actions have not been
-verified. Reconnect-free assignment of new devices remains unresolved.
+Mocks establish script behavior, not every action or device in the game. The
+Lua mock suite could not be run in the current environment because Python's
+`lupa` dependency is unavailable. Package/archive checks can be run separately.
