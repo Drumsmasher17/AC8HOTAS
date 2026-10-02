@@ -1,7 +1,7 @@
 # AC8HOTAS full installation
 
 For a fresh installation with no UE4SS loader already installed. Includes
-AC8HOTAS 0.1.0, AC8AnalogYaw 0.1.3 and the locally tested UE4SS loader build.
+AC8HOTAS 0.1.1, AC8AnalogYaw 0.1.3 and the locally tested UE4SS loader build.
 Both mods are enabled. All controller bindings start unassigned.
 
 1. Close the game. In Steam, open the game's installed files using Browse.

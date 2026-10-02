@@ -82,19 +82,32 @@ function M.apply(subsystem,grouped,products,owned,log)
         for item in pairs(g.bindings) do if not p.items[item] or #p.items[item]==0 then return false end end
         return true
     end
+    local function requireFits(name,g,ownedProfile)
+        local p=profiles[name]
+        local missing={}
+        for _,item in ipairs(keys(g.bindings)) do
+            if not p.items[item] or #p.items[item]==0 then
+                missing[#missing+1]=g.bindings[item].action
+            end
+        end
+        if #missing>0 then
+            error(string.format('Existing %sprofile lacks requested action slots: %s | device: %s (%s) | profile: %s. No mappings applied by this attempt.',
+                ownedProfile and 'owned ' or 'device ',table.concat(missing,', '),g.device.name,g.device.product,name))
+        end
+    end
     for _,id in ipairs(keys(grouped)) do
         local g=grouped[id]; local name
         if owned[id] then
             name=owned[id].name
             assert(profiles[name] and profiles[name].id==g.device.product,'Owned profile changed externally')
-            assert(fits(profiles[name],g),'Existing profile lacks a requested action; restart with the new config')
+            requireFits(name,g,true)
         else
             for n,p in pairs(profiles) do
                 if p.id==g.device.product then
                     assert(not name,'Ambiguous device profile'); name=n
                 end
             end
-            if name then assert(fits(profiles[name],g),'Existing device profile lacks requested action') end
+            if name then requireFits(name,g,false) end
             if not name then
                 for _,n in ipairs(keys(profiles)) do
                     local p=profiles[n]; local reserved=false

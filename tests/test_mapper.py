@@ -40,6 +40,32 @@ config={version=1,bindings={Yaw={device='d1',input='X',invert=false},Pitch={devi
 function silent() end
 '''
 lua=LuaRuntime(unpack_returned_tuples=True)
+diagnostic=LuaRuntime(unpack_returned_tuples=True)
+diagnostic.execute(SETUP)
+diagnostic.globals().mapper=diagnostic.execute('return assert(loadfile(...))()',str(ROOT/'mod/Scripts/mapper.lua'))
+diagnostic.execute('''
+a.DeviceID_Win=catalog.devices[1].product
+-- One absent map entry and one existing entry with an empty settings array.
+local items={}
+for _,pair in ipairs(a.DeviceInputItemMap) do
+ if pair[1]~=47 then
+  if pair[1]==48 then pair[2].InputSettings=wrap({}) end
+  items[#items+1]=pair
+ end
+end
+a.DeviceInputItemMap=wrap(items)
+config.bindings={CameraPitch={device='d1',input='Y'},CameraYaw={device='d1',input='X'}}
+local g,p=mapper.validate(config,catalog)
+for _,ownership in ipairs({{}, {d1={name='A',product=a.DeviceID_Win}}}) do
+ local ok,err=pcall(mapper.apply,sub,g,p,ownership,silent)
+ assert(not ok)
+ for _,fragment in ipairs({'CameraPitch, CameraYaw','Throttle (0x81963344)','profile: A','No mappings applied'}) do
+  assert(tostring(err):find(fragment,1,true),tostring(err))
+ end
+ assert(a.slots[0].InputType==12 and a.slots[0].ButtonIndex==11)
+ assert(b.DeviceID_Win=='0x22220002' and b.slots[0].InputType==12)
+end
+''')
 lua.execute(SETUP)
 lua.globals().mapper=lua.execute('return assert(loadfile(...))()',str(ROOT/'mod/Scripts/mapper.lua'))
 lua.execute('''

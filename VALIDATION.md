@@ -1,4 +1,10 @@
-# Release validation — 0.1.0
+# Release validation — 0.1.1
+
+The 0.1.1 change adds error detail only. Regression coverage exercises both
+matching built-in and previously owned profiles, absent actions and empty action
+arrays, deterministic missing-action names, device/profile identity and rejection
+without mutation. The reported X-56 configuration still needs a user test to
+identify its missing actions; this release does not claim to fix its mappings.
 
 ## In-game evidence
 

@@ -21,15 +21,15 @@ by the preparation scripts.
 
 ## GitHub
 
-Publish the source repository, then create release tag `v0.1.0`. Use
+Publish the source repository, then create release tag `v0.1.1`. Use
 RELEASE_NOTES.md for the description. Attach all three dist ZIPs and SHA256SUMS.txt.
 The explicit source ZIP is optional for GitHub (which also generates source
 archives) but useful for users downloading elsewhere.
 
 ## Nexus Mods
 
-Use `AC8HOTAS-0.1.0-with-AC8AnalogYaw-0.1.3.zip` as the recommended/main download.
-Offer `AC8HOTAS-0.1.0.zip` as the HOTAS-only alternative; users choose one.
+Use `AC8HOTAS-0.1.1-with-AC8AnalogYaw-0.1.3.zip` as the recommended/main download.
+Offer `AC8HOTAS-0.1.1.zip` as the HOTAS-only alternative; users choose one.
 Provide INSTALL.md instructions and list UE4SS as a dependency (included only
 in the full-install download).
 Link the analog-yaw project for source and independent updates. Link your HOTAS
@@ -48,7 +48,7 @@ reads these files without changing the installation. It uses clean release
 settings and new mod lists, not the installed user's configuration. Run
 `python tests/test_full_package.py` to check the resulting archive.
 
-Upload AC8HOTAS-0.1.0-full-install.zip and the refreshed SHA256SUMS.txt as well.
+Upload AC8HOTAS-0.1.1-full-install.zip and the refreshed SHA256SUMS.txt as well.
 Offer this as the fresh-install option and the mod-only bundle for existing
 UE4SS users. Its Game folder is extracted at the game root. Existing loader
 users should not overwrite their setup with it. This full archive has not yet

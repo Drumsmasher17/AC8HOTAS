@@ -2,10 +2,10 @@
 
 ## Choose a download
 
-- **Full installation:** `AC8HOTAS-0.1.0-full-install.zip` includes the loader
+- **Full installation:** `AC8HOTAS-0.1.1-full-install.zip` includes the loader
   and both mods for a fresh installation. Follow its root INSTALL-FULL.md instead
   of the mod-only steps below. Do not use it over an existing UE4SS installation.
-- **Recommended bundle:** AC8HOTAS 0.1.0 + AC8AnalogYaw 0.1.3. Device bindings
+- **Recommended bundle:** AC8HOTAS 0.1.1 + AC8AnalogYaw 0.1.3. Device bindings
   plus proportional yaw. The two mods remain separate and can be disabled independently.
 - **HOTAS only:** use this if you already have AC8AnalogYaw, or only want bindings.
 
@@ -80,6 +80,10 @@ or POV1_Up/Down/Left/Right. Only the first POV is supported by this route.
 - **New device does nothing:** press F5 first; if it remains inactive, reconnect
   the controller and try again. F5 does not yet rebuild all game-side device caches.
 - **Unsupported profile slot:** the mod rejects the config before applying it.
+  Since 0.1.1 the error names the missing actions, controller and selected profile.
+  Include that complete error in a bug report. Repeated F5 presses do not create
+  missing slots. A matching built-in device profile remains the preferred profile
+  after a restart, so restarting will not fix missing slots in that stock profile.
   Some game profiles cannot accommodate every listed action. A restart with the
   completed config can allow a different profile to be selected; it is not guaranteed.
 - **Duplicate identical models:** separate devices with the same product ID are

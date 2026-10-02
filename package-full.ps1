@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $dist = Join-Path $PSScriptRoot 'dist'
-$bundlePath = Join-Path $dist 'AC8HOTAS-0.1.0-with-AC8AnalogYaw-0.1.3.zip'
+$bundlePath = Join-Path $dist 'AC8HOTAS-0.1.1-with-AC8AnalogYaw-0.1.3.zip'
 if (-not (Test-Path -LiteralPath $bundlePath)) { throw 'Run package.ps1 first.' }
 $pinned = @{
     'dwmapi.dll'='C5D2AB9F9B89BD94460B0A283EEFB113085105014011CAC961F36787376DB744'
@@ -16,7 +16,7 @@ foreach ($item in $pinned.GetEnumerator()) {
         throw "Unexpected loader binary: $($item.Key). Review provenance before changing the pin."
     }
 }
-$name = 'AC8HOTAS-0.1.0-full-install.zip'
+$name = 'AC8HOTAS-0.1.1-full-install.zip'
 $output = Join-Path $dist $name
 $prefix = 'Game/Binaries/Win64/'
 $bundle = [IO.Compression.ZipFile]::OpenRead($bundlePath)

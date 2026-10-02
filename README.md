@@ -11,7 +11,7 @@ mods: AC8HOTAS handles bindings, and AC8AnalogYaw enables proportional yaw.
 A HOTAS-only download is also available for users who already have analog yaw
 or prefer the game's existing yaw behaviour.
 
-**New to UE4SS?** Choose `AC8HOTAS-0.1.0-full-install.zip`, which also includes
+**New to UE4SS?** Choose `AC8HOTAS-0.1.1-full-install.zip`, which also includes
 the tested loader and enables both mods. Follow its `INSTALL-FULL.md`: copy its
 Game folder into the game installation, launch, configure bindings and press F5.
 Use this package only for a fresh installation without an existing loader.
