@@ -66,6 +66,18 @@ their capabilities and binding values you can copy into the editable section abo
 
 ![Detected controllers with available axes, buttons, hats and copyable binding values](pic_2.png)
 
+### Community examples
+
+Complete configurations contributed by users, in `examples/<controller>/`:
+
+- [Thrustmaster HOTAS Warthog](examples/hotas-warthog/) (joystick and dual throttle)
+
+Replace the GUID placeholders with your own detected device IDs before use.
+To contribute an example for your controller, add a folder with a
+`bindings.lua` (GUIDs replaced by labelled placeholders, generated section
+removed) and a `README.md` with a control-mapping table and notes on which
+bindings you confirmed in game.
+
 ## Current limitations
 
 F5 refreshes the mod's device inventory and bindings. Assigning a newly
