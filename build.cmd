@@ -14,4 +14,9 @@ if errorlevel 1 exit /b 1
 cl /nologo /std:c++17 /O2 /MT /W4 /EHsc /DHOTAS_CONSOLE ..\src\devices.cpp /link /OUT:scan-devices.exe
 if errorlevel 1 exit /b 1
 copy /y ac8_hotas_devices_001.dll ..\mod\Scripts\ >nul
+cl /nologo /std:c++17 /O2 /MT /W4 /EHsc /LD ..\src\weapon_buttons.cpp /link /OUT:ac8_hotas_weapons_001.dll
+if errorlevel 1 exit /b 1
+cl /nologo /std:c++17 /O2 /MT /W4 /EHsc /DWEAPON_CONSOLE ..\src\weapon_buttons.cpp /link /OUT:test-weapons.exe
+if errorlevel 1 exit /b 1
+copy /y ac8_hotas_weapons_001.dll ..\mod\Scripts\ >nul
 exit /b %errorlevel%

@@ -172,9 +172,9 @@ for _,s in ipairs(slots) do
 end
 ''')
 # Execute the actual entry point with filesystem-backed config and a mocked native scanner.
-with tempfile.TemporaryDirectory() as t:
+with tempfile.TemporaryDirectory(dir=ROOT/'build') as t:
     root=Path(t); scripts=root/'Scripts'; scripts.mkdir()
-    for name in ('main.lua','mapper.lua','session.lua','actions.lua'):
+    for name in ('main.lua','mapper.lua','session.lua','actions.lua','profile_dump.lua','weapon_select.lua'):
         shutil.copyfile(ROOT/'mod/Scripts'/name,scripts/name)
     cfg=root/'bindings.lua'
     config_text="return {version=1,bindings={Yaw={device='d1',input='X',invert=false}}}\n"
@@ -185,14 +185,21 @@ with tempfile.TemporaryDirectory() as t:
 shared={}
 ModRef={GetSharedVariable=function(_,k) return shared[k] end,SetSharedVariable=function(_,k,v) shared[k]=v end}
 scans=0
-package.loadlib=function() return function()
+commits=0; selectionMask=0; rejectPrepare=false
+package.loadlib=function(_,symbol)
+ if symbol=='ac8_weapon_prepare' then return function(sentinel) if not rejectPrepare then return sentinel end end end
+ if symbol=='ac8_weapon_commit' then return function() commits=commits+1 end end
+ if symbol=='ac8_weapon_poll' then return function(...)
+  local n=selectionMask; selectionMask=0; return table.unpack({...},8-n,7)
+ end end
+ return function()
  scans=scans+1
  local f=assert(io.open(scanfile,'w'))
- f:write("return {ok=true,devices={{id='d1',product='0x81963344',name='Throttle',axes=2,buttons=0,povs=0,inputs={{token='X',name='X Axis'},{token='Y',name='Y Axis'}}}}}")
+ f:write("return {ok=true,devices={{id='d1',product='0x81963344',name='Throttle',axes=2,buttons=16,povs=0,inputs={{token='X',name='X Axis'},{token='Y',name='Y Axis'},{token='Button14'},{token='Button15'},{token='Button16'}}}}}")
  f:close()
 end end
-Key={F5=116}
-RegisterKeyBind=function(key,fn) assert(key==Key.F5); reloadKey=fn end
+Key={F5=116,F7=118}
+RegisterKeyBind=function(key,fn) if key==Key.F5 then reloadKey=fn else assert(key==Key.F7) end end
 LoopInGameThreadAfterFrames=function(_,fn) tick=fn end
 ''')
     lua.execute('assert(loadfile(...))()',str(scripts/'main.lua'))
@@ -210,4 +217,12 @@ LoopInGameThreadAfterFrames=function(_,fn) tick=fn end
     lua.execute('oldTick=tick; oldKey=reloadKey')
     lua.execute('assert(loadfile(...))()',str(scripts/'main.lua'))
     lua.execute('tick(); assert(a.slots[45].InputType==0); local before=scans; oldKey(); oldTick(); assert(scans==before)')
+    cfg.write_text("return {version=1,bindings={SelectMissiles={device='d1',input='Button14'},SelectSpecialWeapon1={device='d1',input='Button15'},SelectSpecialWeapon2={device='d1',input='Button16'}}}")
+    lua.execute('reloadKey(); tick(); assert(commits==1 and a.slots[45].InputType==0)')
+    cfg.write_text("return {version=1,bindings={SelectMissiles={device='d1',input='Button99'}}}")
+    lua.execute('reloadKey(); tick(); assert(commits==1)')
+    cfg.write_text("return {version=1,bindings={SelectMissiles={device='d1',input='Button15'}}}")
+    lua.execute('rejectPrepare=true; reloadKey(); tick(); assert(commits==1)')
+    cfg.write_text('return {version=1,bindings={}}')
+    lua.execute('rejectPrepare=false; reloadKey(); tick(); assert(commits==2)')
 print('PASS: multiple devices, inversion, neutral unassigned actions, invalid/missing/duplicate rejection, removal/re-add, explicit-only reload, lifecycle uses last accepted config.')

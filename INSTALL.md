@@ -2,10 +2,10 @@
 
 ## Choose a download
 
-- **Full installation:** `AC8HOTAS-0.2.0-full-install.zip` includes the loader
+- **Full installation:** `AC8HOTAS-0.3.0-full-install.zip` includes the loader
   and both mods for a fresh installation. Follow its root INSTALL-FULL.md instead
   of the mod-only steps below. Do not use it over an existing UE4SS installation.
-- **Recommended bundle:** AC8HOTAS 0.2.0 + AC8AnalogYaw 0.1.3. Device bindings
+- **Recommended bundle:** AC8HOTAS 0.3.0 + AC8AnalogYaw 0.1.3. Device bindings
   plus proportional yaw. The two mods remain separate and can be disabled independently.
 - **HOTAS only:** use this if you already have AC8AnalogYaw, or only want bindings.
 
@@ -26,6 +26,8 @@ ModRef shared variables. Other UE4SS builds have not been verified.
        bindings.lua
        Scripts/main.lua
        Scripts/ac8_hotas_devices_001.dll
+       Scripts/weapon_select.lua
+       Scripts/ac8_hotas_weapons_001.dll
      AC8AnalogYaw/             (recommended bundle only)
        Scripts/main.lua
        Scripts/ac8_analog_yaw_013.dll

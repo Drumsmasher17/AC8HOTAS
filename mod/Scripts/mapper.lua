@@ -2,6 +2,8 @@
 local M={}
 local dir=assert(debug.getinfo(1,'S').source:sub(2):match('^(.*[/\\])'))
 M.actions=assert(loadfile(dir..'actions.lua'))()
+-- Selection actions are dispatched directly; these are not native profile enum IDs.
+M.selectionActions={SelectMissiles=1,SelectSpecialWeapon1=2,SelectSpecialWeapon2=3}
 M.axes={X=1,Y=2,Z=3,Rx=4,Ry=5,Rz=6,Slider1=7,Slider2=7}
 local function str(v) if type(v)=='string' or type(v)=='number' then return tostring(v) end return v:ToString() end
 local function keys(t) local r={} for k in pairs(t) do r[#r+1]=k end table.sort(r); return r end
@@ -16,13 +18,14 @@ function M.validate(config,catalog)
     for _,d in ipairs(catalog.devices) do
         devices[d.id]=d; products[d.product]=(products[d.product] or 0)+1
     end
-    local grouped={}
+    local grouped,selections={},{}
     for action,b in pairs(config.bindings) do
-        assert(M.actions[action],'Unsupported action: '..tostring(action))
+        local selection=M.selectionActions[action]
+        assert(M.actions[action] or selection,'Unsupported action: '..tostring(action))
         assert(type(b)=='table','Binding must be a table: '..action)
         for k in pairs(b) do assert(k=='device' or k=='input' or k=='invert' or k=='mode','Unknown binding field: '..tostring(k)) end
         local d=assert(devices[b.device],'Device not connected: '..tostring(b.device))
-        assert(products[d.product]==1,'This game profile route cannot distinguish two devices with the same product ID: '..d.product)
+        assert(selection or products[d.product]==1,'This game profile route cannot distinguish two devices with the same product ID: '..d.product)
         assert(type(b.input)=='string','input must be a token: '..action)
         local input,index,presentToken=M.axes[b.input],0,b.input
         local button=b.input:match('^Button([1-9][0-9]*)$')
@@ -34,7 +37,7 @@ function M.validate(config,catalog)
         elseif b.input=='Slider1' then index=1
         elseif b.input=='Slider2' then index=2 end
         assert(input,'Unknown input token: '..b.input)
-        local analog=M.actions[action]>=43
+        local analog=not selection and M.actions[action]>=43
         assert(analog==(M.axes[b.input]~=nil),analog and 'This action needs an axis: '..action or 'This action needs ButtonN or POV1_Up/Down/Left/Right: '..action)
         assert(b.invert==nil or type(b.invert)=='boolean','invert must be true or false: '..action)
         if not analog then assert(not b.invert and b.mode==nil,'Buttons/hats do not use invert or mode: '..action) end
@@ -44,11 +47,16 @@ function M.validate(config,catalog)
         local present=false
         for _,o in ipairs(d.inputs) do if o.token==presentToken then present=true end end
         assert(present,'Device does not expose '..b.input..': '..d.name)
-        grouped[d.id]=grouped[d.id] or {device=d,bindings={}}
-        grouped[d.id].bindings[M.actions[action]]={input=input,invert=b.invert or false,action=action,
-            mode=mode,option=(mode=='zero_to_one' and 4 or 0)+(b.invert and 1 or 0),index=index}
+        if selection then
+            selections[#selections+1]={slot=selection,device=d.id,input=input,index=index,action=action}
+        else
+            grouped[d.id]=grouped[d.id] or {device=d,bindings={}}
+            grouped[d.id].bindings[M.actions[action]]={input=input,invert=b.invert or false,action=action,
+                mode=mode,option=(mode=='zero_to_one' and 4 or 0)+(b.invert and 1 or 0),index=index}
+        end
     end
-    return grouped,products
+    table.sort(selections,function(a,b) return a.slot<b.slot end)
+    return grouped,products,selections
 end
 local function entries(data)
     local result={}

@@ -2,6 +2,7 @@ build/
 dist/
 mod/Scripts/*.dll
 mod/Scripts/devices.lua*
+mod/Scripts/weapon-bindings.internal.txt
 mod/HOTAS-*.log
 mod/bindings.lua.bak
 __pycache__/

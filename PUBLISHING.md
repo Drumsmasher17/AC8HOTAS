@@ -1,15 +1,18 @@
 # Publishing checklist
 
-The release source is under `mod-projects/AC8HOTAS`. Publish that project only,
+Run these commands from the repository root. Publish this project only,
 not the game installation. `.gitignore` excludes build outputs and generated
 catalogs/logs. Creating packages does not publish or upload anything.
 
 ## Build and check
 
 1. Run `build.cmd` with Visual Studio C++ Build Tools installed if the device
-   scanner DLL needs rebuilding.
+   scanner and weapon input DLLs need rebuilding.
 2. Run `python tests/test_mapper.py` with `lupa` installed (an optional argument
    adds a local `lupa` package directory).
+   Also run `python tests/test_weapons.py` (the same optional library argument
+   is supported) and `build/test-weapons.exe` after building. Python 3 and the
+   `lupa` package are needed for the Lua checks.
 3. Use AC8AnalogYaw 0.1.3 from its upstream release, then run:
 
    ```powershell
@@ -31,15 +34,15 @@ catalogs/logs. Creating packages does not publish or upload anything.
 
 ## GitHub
 
-Commit the reviewed source and create release tag `v0.2.0`. Use
+Commit the reviewed source and create release tag `v0.3.0`. Use
 `RELEASE_NOTES.md` for the release description. Attach the three mod-only ZIPs
 and `SHA256SUMS.txt`. The explicit source ZIP is optional but useful for sites
 that do not generate source archives.
 
 ## Nexus Mods
 
-Use `AC8HOTAS-0.2.0-with-AC8AnalogYaw-0.1.3.zip` as the recommended/main
-download. Offer `AC8HOTAS-0.2.0.zip` as the HOTAS-only alternative. Provide
+Use `AC8HOTAS-0.3.0-with-AC8AnalogYaw-0.1.3.zip` as the recommended/main
+download. Offer `AC8HOTAS-0.3.0.zip` as the HOTAS-only alternative. Provide
 `INSTALL.md` and list UE4SS as a requirement (included only in the full-install
 download). Link the analog-yaw project for its source and separate updates.
 The full-install ZIP is an option for a fresh installation only; users with an

@@ -11,7 +11,7 @@ mods: AC8HOTAS handles bindings, and AC8AnalogYaw enables proportional yaw.
 A HOTAS-only download is also available for users who already have analog yaw
 or prefer the game's existing yaw behaviour.
 
-**New to UE4SS?** Choose `AC8HOTAS-0.2.0-full-install.zip`, which also includes
+**New to UE4SS?** Choose `AC8HOTAS-0.3.0-full-install.zip`, which also includes
 the tested loader and enables both mods. Follow its `INSTALL-FULL.md`: copy its
 Game folder into the game installation, launch, configure bindings and press F5.
 Use this package only for a fresh installation without an existing loader.
@@ -24,7 +24,7 @@ from [AC8AnalogueYaw](https://github.com/Drumsmasher17/AC8AnalogueYaw).
 
 Start the game once with your controllers connected. AC8HOTAS lists detected
 devices and their available axes, buttons and hats at the bottom of its
-`bindings.lua`. All 49 action entries start unbound, grouped into flight buttons,
+`bindings.lua`. All 52 action entries start unbound, grouped into flight buttons,
 hats, menu controls, axes and optional controls.
 
 Copy a device binding from the generated list into an action, save the file,
@@ -40,6 +40,9 @@ Roll = { device="{detected GUID}", input="X", invert=false },
 Throttle = { device="{detected GUID}", input="Rx", invert=false },
 Gun = { device="{detected GUID}", input="Button1" },
 HatUp = { device="{detected GUID}", input="POV1_Up" },
+SelectMissiles = { device="{detected GUID}", input="Button14" },
+SelectSpecialWeapon1 = { device="{detected GUID}", input="Button15" },
+SelectSpecialWeapon2 = { device="{detected GUID}", input="Button16" },
 ```
 
 - `nil` leaves an action unbound.
@@ -51,6 +54,13 @@ HatUp = { device="{detected GUID}", input="POV1_Up" },
 Use **Throttle** for a continuous throttle lever; **AccelDecel** is a button
 command. Pitch, Roll, Yaw, Throttle, CameraPitch and CameraYaw accept axes.
 The other actions accept buttons or first-POV hat directions.
+
+`Weapon` keeps the game's normal weapon switching behavior. `SelectMissiles`,
+`SelectSpecialWeapon1` and `SelectSpecialWeapon2` choose those slots directly.
+Configure them in this same file and press F5; setting one to nil unbinds it.
+They respond once per press while the game is focused. After launch, refocus or
+reconnect, release a held button before pressing it again. No key mapping or
+separate weapon-selection mod is required. Game restrictions still apply.
 
 ## Configuration examples
 

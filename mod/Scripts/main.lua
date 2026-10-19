@@ -1,4 +1,4 @@
--- AC8HOTAS 0.2.0: session-only flight-stick profile reset and explicit config reload.
+-- AC8HOTAS 0.3.0: session profiles and direct selection share explicit config reload.
 local dir=assert(debug.getinfo(1,'S').source:sub(2):match('^(.*[/\\])'))
 local root=dir..'../'
 local mapper=assert(loadfile(dir..'mapper.lua'))()
@@ -16,6 +16,7 @@ local function log(s)
     print('[AC8HOTAS] '..s..'\n')
 end
 local session=assert(loadfile(dir..'session.lua'))()(ModRef)
+local weapons=assert(loadfile(dir..'weapon_select.lua'))()(dir,log)
 local function read(path) local f=assert(io.open(path,'r')); local s=f:read('*a'); f:close(); return s end
 local function literal(path) return assert(load(read(path),'@'..path,'t',{}))() end
 local scanner=assert(package.loadlib(dir..'ac8_hotas_devices_001.dll','ac8_hotas_scan'))
@@ -57,6 +58,7 @@ local function refreshCatalog()
     return catalog
 end
 local grouped,products,owned=nil,nil,{}
+local selections={}
 local owner=nil
 local cachedSubsystem=nil
 local requested=true
@@ -68,12 +70,13 @@ if saved then
     log('Recovered profile ownership from previous Lua instance'..(failed and '; previous failure still requires game restart' or ''))
 end
 local function saveSession()
-    session.write({grouped=grouped,products=products,owned=owned,owner=owner,failed=failed})
+    session.write({grouped=grouped,products=products,owned=owned,owner=owner,failed=failed,selections=selections})
 end
 local function reload()
     local catalog=refreshCatalog()
     local config=literal(root..'bindings.lua')
-    local g,p=mapper.validate(config,catalog)
+    local g,p,s=mapper.validate(config,catalog)
+    local commitWeapons=weapons.prepare(s)
     local sub=mapper.subsystem()
     cachedSubsystem=sub
     if sub then
@@ -82,17 +85,30 @@ local function reload()
         owned=result; owner=currentOwner
     end
     grouped,products=g,p
+    commitWeapons(); selections=s
     saveSession()
     log('Config accepted. '..(sub and 'Session flight-stick profiles rebuilt from bindings.lua.' or 'Waiting for flight-stick subsystem.'))
 end
 RegisterKeyBind(Key.F5,function() if session.current() then requested=true end end)
 -- Temporary investigation hotkey. The dump is explicit and read-only.
 profileDump.register(dir,Key.F7,RegisterKeyBind,FindAllOf)
--- Stable gameplay only checks the cached object's validity/address. No repeated
--- global object enumeration, device scan, file access, serialization, or logging.
+-- Direct input polls in memory each frame; profiles only check lifecycle every
+-- 30 frames. Aircraft lookup and selection logs occur only on button presses.
 local frame=0
 LoopInGameThreadAfterFrames(1,function()
     if failed then return end
+    if not session.current() then return end
+    if saved then
+        local previous=saved; saved=nil
+        if previous.selections and #previous.selections>0 then
+            local ok,err=pcall(function()
+                weapons.prepare(previous.selections)(); selections=previous.selections
+            end)
+            if not ok then log('Could not restore weapon selections: '..tostring(err)) end
+        end
+    end
+    local inputOK,inputError=pcall(weapons.tick)
+    if not inputOK then failed=true; saveSession(); log('Stopped after weapon input error: '..tostring(inputError)); return end
     frame=frame+1
     if not requested and (frame%30~=0 or not grouped) then return end
     if not session.current() then return end
@@ -120,4 +136,4 @@ LoopInGameThreadAfterFrames(1,function()
     end)
     if not ok then failed=true; saveSession(); log('Stopped after lifecycle error: '..tostring(err)) end
 end)
-log('AC8HOTAS 0.2.0 ready. Startup applies bindings; F5 refreshes the device catalog and rebuilds session profiles from bindings.lua.')
+log('AC8HOTAS 0.3.0 ready. Startup applies bindings; F5 reloads controls and direct weapon selections from bindings.lua.')

@@ -1,4 +1,4 @@
-# Release validation — 0.2.0
+# Release validation â€” 0.2.0
 
 ## In-game evidence
 
@@ -22,7 +22,7 @@ and tracing are absent.
 
 AC8AnalogYaw 0.1.3 was tested separately during development. Packaging copies
 its release files unchanged. A clean-folder installation smoke test of the
-combined 0.2.0 package and a fresh full-install smoke test remain to be done
+combined 0.3.0 package and a fresh full-install smoke test remain to be done
 before publication.
 
 ## Automated coverage
@@ -32,10 +32,22 @@ action slot is missing, session profile clearing, axis conversions and
 inversion, buttons/sliders, POV directions, neutral unassigned actions,
 malformed/missing/duplicate-device rejection, write failures, config reload,
 subsystem replacement and ownership across Lua reload. Package checks verify
-all 49 default actions are unbound, required scripts are present, no personal
+all 52 default actions are unbound, required scripts are present, no personal
 GUIDs/runtime catalogs/logs are shipped, the analog-yaw bundle matches its
 upstream release, and checksums match.
 
-Mocks establish script behavior, not every action or device in the game. The
-Lua mock suite could not be run in the current environment because Python's
-`lupa` dependency is unavailable. Package/archive checks can be run separately.
+The Lua mock suites, real DLL bridge checks and package/archive checks passed
+from the Git checkout. Mocks establish script behavior, not every action or
+device in the game.
+
+## Direct selection validation
+
+Shared-config selection validation, arbitrary device instances, mixed native
+and direct actions, button/hat bounds, F5 staging/rejection/removal, and mocked
+weapon dispatch pass. Native config parsing, rising edges, held-button reset
+and real device acquisition from the user's configured left-stick buttons
+14/15/16 pass. Release packages include the helper and all 52 default actions
+unbound; source, mod-only, bundled yaw and fresh-install archive checks pass.
+The user confirmed both the earlier keyboard prototype and the integrated
+HOTAS bindings work in flight on the VPC setup. Routine per-selection logging
+was then removed; startup/configuration and error messages remain.
