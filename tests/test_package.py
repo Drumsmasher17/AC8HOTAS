@@ -11,6 +11,11 @@ with zipfile.ZipFile(args.analog_yaw_zip) as upstream:
             assert z.testzip() is None
             names=z.namelist()
             assert len(names)==len(set(names))
+            executables = [n for n in names if n.endswith('.exe')]
+            assert executables in ([], ['AC8HOTAS/AC8HOTAS-Setup.exe'])
+            if executables:
+                assert z.read(executables[0]) == (root/'dist/AC8HOTAS-Setup.exe').read_bytes()
+                assert not any(n.startswith('AC8HOTAS/Setup/') for n in names)
             assert 'INSTALL.md' in names and 'AC8HOTAS/Scripts/actions.lua' in names
             assert 'AC8HOTAS/Scripts/profile_dump.lua' in names
             assert 'AC8HOTAS/Scripts/weapon_select.lua' in names
@@ -31,6 +36,7 @@ with zipfile.ZipFile(args.analog_yaw_zip) as upstream:
             else: assert not yaw
 with zipfile.ZipFile(root/'dist/AC8HOTAS-0.3.0-source.zip') as z:
     assert z.testzip() is None
+    assert 'AC8HOTAS/wizard/notices.html' not in z.namelist()
     assert not any(n.endswith(('.dll','.exe','.log','.bak')) for n in z.namelist())
 for line in (root/'dist/SHA256SUMS.txt').read_text().splitlines():
     digest,name=line.split('  ',1)

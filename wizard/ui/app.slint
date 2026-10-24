@@ -1,0 +1,306 @@
+import { ScrollView, LineEdit, AboutSlint, ComboBox } from "std-widgets.slint";
+import { Theme, ActionButton } from "theme.slint";
+
+export struct ControlRow { index: int, label: string, binding: string, header: bool, bound: bool }
+
+component BindingPanel inherits Rectangle {
+    in property <bool> compact;
+    in property <string> group;
+    in property <string> label;
+    in property <string> instruction;
+    in property <string> binding;
+    in property <bool> bound;
+    in property <bool> listening;
+    in property <bool> axis;
+    in property <bool> inverted;
+    in property <bool> zero-to-one;
+    in property <bool> yaw;
+    in property <bool> pedals;
+    in property <float> preview;
+    in property <image> art;
+    in property <bool> demo;
+    in property <bool> manual-visible;
+    in property <bool> manual-enabled;
+    in property <string> shared-warning;
+    callback capture(); callback invert(); callback range(bool); callback test();
+    callback close(); callback choose-pedals(bool); callback manual();
+    VerticalLayout {
+        spacing: 8px;
+        if !root.compact: Rectangle { vertical-stretch: 1; }
+        if !root.compact: Text { text: root.group; color: #7896b3; font-size: 10px; height: 25px; }
+        HorizontalLayout {
+            height: root.compact ? 35px : 65px;
+            Text { text: root.label; color: Theme.text; font-size: root.compact ? 20px : 39px; font-weight: 600; vertical-alignment: center; wrap: word-wrap; }
+            if root.compact: ActionButton { text: "×"; accessible-label: "Close binding editor"; quiet: true; width: 30px; clicked => { root.close(); } }
+        }
+        if root.compact || root.manual-visible: HorizontalLayout {
+            height: 32px;
+            ActionButton { text: "Choose input"; enabled: root.manual-enabled; quiet: true; width: 110px; clicked => { root.manual(); } }
+            Rectangle { horizontal-stretch: 1; }
+        }
+        if root.shared-warning != "": Text { text: root.shared-warning; color: #d5b27e; font-size: 10px; wrap: word-wrap; height: 24px; }
+        if root.compact: Image { source: root.art; image-fit: contain; height: 125px; }
+        Text { text: root.instruction; color: #9fb5ca; font-size: root.compact ? 12px : 14px; height: root.compact ? 35px : 45px; wrap: word-wrap; }
+        if root.compact && root.yaw: HorizontalLayout {
+            height: 32px; spacing: 5px;
+            ActionButton { text: "Stick twist"; primary: !root.pedals; clicked => { root.choose-pedals(false); } }
+            ActionButton { text: "Pedals"; primary: root.pedals; clicked => { root.choose-pedals(true); } }
+        }
+        Text { text: root.listening ? "● Listening…" : root.binding; color: root.bound ? #b3d5eb : #718ca6; font-size: root.compact ? 11px : 12px; height: 36px; overflow: elide; }
+        Rectangle { height: 1px; background: Theme.border; }
+        Rectangle { height: 8px; }
+        HorizontalLayout {
+            height: 42px;
+            ActionButton { text: root.listening ? "Cancel" : root.bound ? "Rebind" : root.axis ? "Assign axis" : "Assign button"; primary: true; width: root.compact ? 275px : 155px; clicked => { root.capture(); } }
+            if !root.compact: Rectangle { horizontal-stretch: 1; }
+        }
+        if root.axis: Rectangle {
+            height: 34px;
+            Rectangle { y: 20px; height: 7px; width: parent.width; background: #263c53; border-radius: 5px;
+                Rectangle { x: parent.width / 2; y: -4px; height: 15px; width: 1px; background: #6887a4; }
+                Rectangle { x: (parent.width - 10px) * root.preview; y: -4px; width: 10px; height: 15px; background: #a6d6ff; border-radius: 3px; }
+            }
+            TouchArea { enabled: root.demo; clicked => { root.test(); } }
+        }
+        if root.axis: HorizontalLayout {
+            height: 32px;
+            if !root.compact: Text { text: root.zero-to-one ? "0% — 100%" : "−100% — +100%"; color: #718eaa; font-size: 10px; vertical-alignment: center; }
+            ActionButton { text: root.inverted ? "☑ Invert" : "☐ Invert"; enabled: root.bound; quiet: true; width: 85px; clicked => { root.invert(); } }
+            if root.compact: ActionButton { text: root.zero-to-one ? "0 → 1" : "−1 → 1"; accessible-label: "Axis range"; enabled: root.bound; quiet: true; clicked => { root.range(!root.zero-to-one); } }
+        }
+        if !root.axis: Text { text: root.preview > 0.5 ? "● Pressed" : "○ Released"; color: root.preview > 0.5 ? #a6d6ff : Theme.muted; font-size: 12px; height: 38px; }
+        Rectangle { vertical-stretch: 1; }
+    }
+}
+
+export component App inherits Window {
+    title: root.demo ? "AC8HOTAS Setup · UI demo" : "AC8HOTAS Setup";
+    preferred-width: 1100px; preferred-height: 700px; min-width: 920px; min-height: 600px;
+    background: Theme.background; default-font-family: "Segoe UI"; default-font-size: 14px;
+    in property <bool> setup: true;
+    out property <length> setup-panel-width;
+    out property <length> setup-panel-x;
+    in property <bool> loaded: false;
+    in property <bool> demo: false;
+    in property <string> connection-status;
+    in property <string> details;
+    in property <bool> conflict;
+    in property <bool> manual-visible;
+    in property <bool> manual-enabled;
+    in property <string> shared-warning;
+    in property <[string]> device-options;
+    in property <[string]> input-options;
+    in-out property <int> manual-device: 0;
+    in-out property <int> manual-input: 0;
+    in property <int> step: 0;
+    in property <int> selected: -1;
+    in property <string> action-label: "Roll";
+    in property <string> instruction: "Move the stick left and right.";
+    in property <string> binding-label: "—";
+    in property <bool> bound: false;
+    in property <bool> axis: true;
+    in property <bool> yaw: false;
+    in property <bool> pedals: false;
+    in property <bool> inverted: false;
+    in property <bool> zero-to-one: false;
+    in property <bool> listening: false;
+    in property <float> preview: 0.5;
+    in property <int> art: 0;
+    in property <int> assigned: 0;
+    in property <bool> dirty: false;
+    in property <bool> assigned-only: false;
+    in property <[ControlRow]> rows;
+    in property <string> message;
+    in-out property <string> query;
+    private property <bool> show-about: false;
+    private property <bool> confirm-close: false;
+    private property <bool> show-manual: false;
+    private property <bool> show-details: false;
+    out property <bool> modal-open: root.show-about || root.confirm-close || root.show-manual || root.show-details;
+    callback open-controls(); callback start-setup(); callback next(bool); callback back();
+    callback edit(int); callback clear(int); callback close-editor(); callback capture();
+    callback invert(); callback set-range(bool); callback test-input(); callback choose-pedals(bool);
+    callback filter(bool); callback search(string); callback save(); callback request-exit(); callback escape();
+    callback notices();
+    callback choose-folder(); callback reload(); callback export(); callback manual(); callback manual-device-changed(int); callback manual-bind(int);
+    public function ask-discard() { root.confirm-close = true; }
+    public function open-picker() { root.show-manual = true; }
+    private property <image> hardware-image: root.art == 1 ? @image-url("../assets/stick-pitch.svg") : root.art == 2 ? @image-url("../assets/stick-yaw.svg") : root.art == 3 ? @image-url("../assets/throttle.svg") : root.art == 4 ? @image-url("../assets/pedals.svg") : root.art == 5 ? @image-url("../assets/stick-gun.svg") : @image-url("../assets/stick-roll.svg");
+
+    forward-focus: key-handler;
+    key-handler := FocusScope {
+    capture-key-pressed(event) => {
+        if event.text == Key.Escape {
+            if root.show-about { root.show-about = false; }
+            else if root.confirm-close { root.confirm-close = false; }
+            else if root.show-manual { root.show-manual = false; }
+            else if root.show-details { root.show-details = false; }
+            else { root.escape(); }
+            accept
+        } else { reject }
+    }
+    VerticalLayout {
+        padding: 0px; spacing: 0px;
+        Rectangle {
+            height: 84px;
+            HorizontalLayout {
+                padding-left: 36px; padding-right: 36px; padding-top: 22px; padding-bottom: 22px; spacing: 12px;
+                Text { text: "AC8"; color: Theme.text; font-size: 20px; font-weight: 700; horizontal-stretch: 0; vertical-alignment: center; }
+                Text { text: "HOTAS"; color: #9bb2ca; font-size: 20px; font-weight: 300; horizontal-stretch: 0; vertical-alignment: center; }
+                if root.demo: Text { text: "UI DEMO"; color: #83adce; font-size: 9px; horizontal-stretch: 0; vertical-alignment: center; }
+                Rectangle { horizontal-stretch: 1; }
+                if root.loaded && root.setup: Text { text: (root.step + 1) + " / 15"; color: #9bb5cf; font-size: 12px; vertical-alignment: center; horizontal-stretch: 0; }
+                if root.loaded && root.setup: ActionButton { text: "Bindings ↗"; width: 100px; quiet: true; clicked => { root.open-controls(); } }
+                if root.loaded && !root.setup: ActionButton { text: "Setup wizard"; width: 115px; clicked => { root.start-setup(); } }
+                if root.loaded && !root.setup: ActionButton { text: root.demo ? "Save preview" : "Save"; width: 90px; primary: true; clicked => { root.save(); } }
+                if root.loaded && !root.demo: ActionButton { text: "Mod folder"; width: 85px; quiet: true; clicked => { root.choose-folder(); } }
+                ActionButton { text: "About"; width: 65px; quiet: true; clicked => { root.show-about = true; } }
+            }
+        }
+        Rectangle { height: root.loaded && root.setup ? 2px : 1px; background: Theme.border;
+            if root.loaded && root.setup: Rectangle { x: 0px; width: parent.width * (root.step + 1) / 15; height: parent.height; background: Theme.accent; }
+        }
+        if !root.loaded: VerticalLayout {
+            padding: 60px; spacing: 20px; alignment: center;
+            Text { text: "Choose AC8HOTAS"; color: Theme.text; font-size: 32px; horizontal-alignment: center; }
+            Text { text: "Select the installed mod folder."; color: #9fb5ca; font-size: 14px; horizontal-alignment: center; }
+            HorizontalLayout { alignment: center;
+                ActionButton { text: "Choose folder"; width: 155px; primary: true; clicked => { root.choose-folder(); } }
+            }
+        }
+        if root.loaded && root.setup: HorizontalLayout {
+            padding-left: 36px; padding-right: 48px; spacing: 32px;
+            VerticalLayout {
+                min-width: 0px; preferred-width: 0px; horizontal-stretch: 1;
+                Rectangle { vertical-stretch: 1; }
+                Image { source: root.hardware-image; image-fit: contain; preferred-height: 350px; min-height: 200px; max-height: 350px; vertical-stretch: 1; horizontal-stretch: 1; accessible-role: image; accessible-label: "Generic controller movement guide"; }
+                if root.yaw: HorizontalLayout {
+                    alignment: center; spacing: 8px; height: 38px;
+                    ActionButton { text: "Stick twist"; width: 95px; primary: !root.pedals; clicked => { root.choose-pedals(false); } }
+                    ActionButton { text: "Pedals"; width: 90px; primary: root.pedals; clicked => { root.choose-pedals(true); } }
+                }
+                Rectangle { vertical-stretch: 1; }
+            }
+            setup-editor := BindingPanel {
+                changed width => { root.setup-panel-width = self.width; root.setup-panel-x = self.x; }
+                changed x => { root.setup-panel-width = self.width; root.setup-panel-x = self.x; }
+                min-width: 0px; preferred-width: 0px; horizontal-stretch: 1; compact: false;
+                group: root.step < 4 ? "FLIGHT AXES" : "ESSENTIAL CONTROLS";
+                label: root.action-label; instruction: root.instruction; binding: root.binding-label;
+                bound: root.bound; listening: root.listening; axis: root.axis;
+                inverted: root.inverted; zero-to-one: root.zero-to-one; preview: root.preview;
+                demo: root.demo; manual-visible: root.manual-visible; manual-enabled: root.manual-enabled; shared-warning: root.shared-warning;
+                capture => { root.capture(); } invert => { root.invert(); } test => { root.test-input(); }
+                manual => { root.manual(); }
+            }
+        }
+        if root.loaded && !root.setup: VerticalLayout {
+            padding-left: 36px; padding-right: 36px; padding-top: 25px; spacing: 15px;
+            HorizontalLayout {
+                height: 44px; spacing: 8px;
+                Text { text: "Controls"; color: Theme.text; font-size: 28px; font-weight: 600; vertical-alignment: center; }
+                LineEdit { text <=> root.query; placeholder-text: "Search controls"; width: 200px; edited => { root.search(self.text); } }
+                ActionButton { text: "All"; primary: !root.assigned-only; width: 60px; clicked => { root.filter(false); } }
+                ActionButton { text: "Assigned"; primary: root.assigned-only; width: 90px; clicked => { root.filter(true); } }
+            }
+            Rectangle { height: 1px; background: Theme.border; }
+            HorizontalLayout {
+                spacing: 22px;
+                VerticalLayout {
+                    horizontal-stretch: 1; spacing: 0px;
+                    HorizontalLayout { height: 30px; padding-left: 12px; padding-right: 40px;
+                        Text { text: "ACTION"; color: #6886a4; font-size: 9px; horizontal-stretch: 1; }
+                        Text { text: "BINDING"; color: #6886a4; font-size: 9px; horizontal-stretch: 1; }
+                    }
+                    ScrollView {
+                        content-width: self.width;
+                        content-height: row-layout.preferred-height;
+                        row-layout := VerticalLayout {
+                            width: parent.width; spacing: 0px; padding: 0px;
+                            for row in root.rows: Rectangle {
+                                height: row.header ? 38px : 46px;
+                                background: !row.header && row.index == root.selected ? #203950 : transparent;
+                                if row.header: Text { x: 12px; y: 15px; text: row.label; color: #89a5bf; font-size: 11px; font-weight: 600; }
+                                if !row.header: HorizontalLayout {
+                                    spacing: 6px;
+                                    Rectangle {
+                                        accessible-role: button; accessible-label: row.label + " · " + row.binding;
+                                        accessible-action-default => { root.edit(row.index); }
+                                        border-width: row-focus.has-focus ? 1px : 0px; border-color: #91c5ff;
+                                        background: row-touch.has-hover ? #1b3045 : transparent;
+                                        forward-focus: row-focus;
+                                        HorizontalLayout {
+                                            padding-left: 12px; padding-right: 5px; spacing: 10px;
+                                            Text { text: row.label; color: #bfd3e6; font-size: 12px; horizontal-stretch: 1; vertical-alignment: center; overflow: elide; }
+                                            Text { text: row.binding; color: row.bound ? #94b8d8 : #5e7c99; font-size: 11px; horizontal-stretch: 1; vertical-alignment: center; overflow: elide; }
+                                        }
+                                        row-focus := FocusScope { focus-on-click: false;
+                                            key-pressed(event) => { if event.text == Key.Return || event.text == " " { root.edit(row.index); accept } else { reject } }
+                                        }
+                                        row-touch := TouchArea { clicked => { row-focus.focus(); root.edit(row.index); } }
+                                    }
+                                    ActionButton { text: "×"; accessible-label: "Clear " + row.label; width: 30px; enabled: row.bound; quiet: true; clicked => { root.clear(row.index); } }
+                                }
+                                if !row.header: Rectangle { y: parent.height - 1px; height: 1px; width: parent.width; background: #243549; }
+                            }
+                        }
+                    }
+                    if root.rows.length == 0: Text { text: "No controls found."; color: Theme.muted; height: 30px; }
+                }
+                if root.selected >= 0: Rectangle { width: 1px; background: Theme.border; }
+                if root.selected >= 0: BindingPanel {
+                    width: 275px; compact: true;
+                    label: root.action-label; instruction: root.instruction; binding: root.binding-label;
+                    bound: root.bound; listening: root.listening; axis: root.axis; art: root.hardware-image;
+                    inverted: root.inverted; zero-to-one: root.zero-to-one; preview: root.preview;
+                    yaw: root.yaw; pedals: root.pedals;
+                    demo: root.demo; manual-visible: root.manual-visible; manual-enabled: root.manual-enabled; shared-warning: root.shared-warning;
+                    capture => { root.capture(); } invert => { root.invert(); } test => { root.test-input(); }
+                    manual => { root.manual(); }
+                    range(value) => { root.set-range(value); } close => { root.close-editor(); }
+                    choose-pedals(value) => { root.choose-pedals(value); }
+                }
+            }
+        }
+        Rectangle { height: 1px; background: Theme.border; }
+        Rectangle {
+            height: root.loaded && root.setup ? 85px : 54px;
+            HorizontalLayout {
+                padding-left: 36px; padding-right: 36px; padding-top: root.loaded && root.setup ? 21px : 0px; padding-bottom: root.loaded && root.setup ? 21px : 0px; spacing: 10px;
+                if root.loaded && root.setup: ActionButton { text: "← Back"; quiet: true; enabled: root.step > 0; width: 90px; clicked => { root.back(); } }
+                Text { text: root.message != "" ? root.message : root.demo ? "Simulated input" : !root.loaded ? "" : root.setup ? root.connection-status : root.assigned + " / 52 assigned" + (root.dirty ? " · Unsaved" : ""); color: #718ca6; font-size: 10px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
+                if root.details != "": ActionButton { text: "Details"; quiet: true; width: 70px; clicked => { root.show-details = true; } }
+                if root.conflict: ActionButton { text: "Reload"; quiet: true; width: 70px; clicked => { root.reload(); } }
+                if root.conflict: ActionButton { text: "Export"; quiet: true; width: 70px; clicked => { root.export(); } }
+                if root.loaded && root.setup: ActionButton { text: "Skip"; quiet: true; width: 75px; clicked => { root.next(true); } }
+                if root.loaded && root.setup: ActionButton { text: root.step == 14 ? "Finish" : "Next →"; enabled: root.bound; width: 110px; clicked => { root.next(false); } }
+            }
+        }
+    }
+    if root.show-about || root.confirm-close || root.show-manual || root.show-details: Rectangle {
+        background: #080e17dd;
+        TouchArea { }
+        Rectangle {
+            width: 470px; height: root.show-about ? 340px : root.show-manual ? 300px : root.show-details ? 350px : 180px;
+            x: (parent.width - self.width) / 2; y: (parent.height - self.height) / 2;
+            background: #172739; border-radius: 12px; border-width: 1px; border-color: #3d5872;
+            VerticalLayout {
+                padding: 26px; spacing: 16px;
+                Text { text: root.show-about ? "AC8HOTAS Setup" : root.show-manual ? "Choose input" : root.show-details ? "Details" : "Discard unsaved changes?"; color: Theme.text; font-size: 22px; font-weight: 600; }
+                if root.show-about: Text { text: root.demo ? "Native UI demo · 0.1.0\nSimulated input. No game files are changed." : "Version 0.1.0"; color: #9bb5cc; font-size: 12px; }
+                if root.show-about: AboutSlint { }
+                if root.show-details: ScrollView { content-height: error-text.preferred-height; error-text := Text { text: root.details; color: #bed1e5; font-size: 12px; wrap: word-wrap; width: parent.width; } }
+                if root.show-manual: ComboBox { model: root.device-options; current-index <=> root.manual-device; selected(value) => { root.manual-device-changed(self.current-index); } }
+                if root.show-manual: ComboBox { model: root.input-options; current-index <=> root.manual-input; }
+                HorizontalLayout {
+                    alignment: end; spacing: 10px;
+                    if root.show-about: ActionButton { text: "Third-party notices"; width: 160px; quiet: true; clicked => { root.notices(); } }
+                    if root.confirm-close: ActionButton { text: "Discard"; width: 90px; clicked => { root.confirm-close = false; root.request-exit(); } }
+                    if root.show-manual: ActionButton { text: "Bind"; width: 90px; enabled: root.input-options.length > 0; primary: true; clicked => { root.manual-bind(root.manual-input); root.show-manual = false; } }
+                    ActionButton { text: root.show-about || root.show-details ? "Close" : root.show-manual ? "Cancel" : "Keep editing"; primary: !root.show-manual; width: 110px; clicked => { root.show-about = false; root.confirm-close = false; root.show-manual = false; root.show-details = false; } }
+                }
+            }
+        }
+    }
+    }
+}
