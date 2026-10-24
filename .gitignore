@@ -6,3 +6,8 @@ mod/Scripts/weapon-bindings.internal.txt
 mod/HOTAS-*.log
 mod/bindings.lua.bak
 __pycache__/
+
+# Config wizard artifacts
+wizard/target/
+wizard/notices.html
+Cargo.lock

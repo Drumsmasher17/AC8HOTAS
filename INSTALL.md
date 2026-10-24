@@ -24,6 +24,7 @@ ModRef shared variables. Other UE4SS builds have not been verified.
    Mods/
      AC8HOTAS/
        bindings.lua
+       AC8HOTAS-Setup.exe
        Scripts/main.lua
        Scripts/ac8_hotas_devices_001.dll
        Scripts/weapon_select.lua
@@ -48,6 +49,9 @@ ModRef shared variables. Other UE4SS builds have not been verified.
    independent pitch, roll and yaw.
 5. Open `AC8HOTAS/bindings.lua` in a text editor. The first launch appends a list
    of detected devices and their input tokens. No bindings are assigned by default.
+
+   > You can run the GUI tool `AC8HOTAS/AC8HOTAS-Setup.exe` to configure controls.
+
 6. Replace the desired `nil` entries with bindings, save, return to the game and
    press **F5**. You do not need to restart just to edit the config.
 

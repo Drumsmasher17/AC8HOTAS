@@ -1,0 +1,32 @@
+export global Theme {
+    out property <color> background: #101925;
+    out property <color> panel: #172739;
+    out property <color> border: #2a3d52;
+    out property <color> text: #d4e5f5;
+    out property <color> muted: #7893ad;
+    out property <color> accent: #83bdfa;
+}
+
+export component ActionButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> primary: false;
+    in property <bool> quiet: false;
+    in property <bool> enabled: true;
+    callback clicked();
+    min-width: 30px; min-height: 32px; preferred-height: 38px; max-height: 42px;
+    horizontal-stretch: 0;
+    opacity: root.enabled ? 1 : 0.38;
+    border-radius: 6px;
+    border-width: root.quiet ? 0px : 1px;
+    border-color: focus.has-focus ? #b6daff : root.primary ? Theme.accent : #3a526b;
+    background: root.primary ? (touch.has-hover ? #9bccff : Theme.accent) : root.quiet ? (touch.has-hover ? #21354b : transparent) : (touch.has-hover ? #2c435c : #203349);
+    accessible-role: button; accessible-label: root.text; accessible-enabled: root.enabled;
+    accessible-action-default => { if root.enabled { root.clicked(); } }
+    forward-focus: focus;
+    Text { text: root.text; color: root.primary ? #10283f : root.quiet ? #9bb6cf : Theme.text; font-size: 12px; font-weight: 500; horizontal-alignment: center; vertical-alignment: center; }
+    focus := FocusScope {
+        enabled: root.enabled; focus-on-click: false;
+        key-pressed(event) => { if event.text == Key.Return || event.text == " " { root.clicked(); accept } else { reject } }
+    }
+    touch := TouchArea { enabled: root.enabled; clicked => { focus.focus(); root.clicked(); } }
+}
