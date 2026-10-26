@@ -6,7 +6,7 @@ p=argparse.ArgumentParser()
 p.add_argument('--analog-yaw-zip',type=Path,default=root.parent/'AC8AnalogYaw/dist/AC8AnalogYaw-0.1.3.zip')
 args=p.parse_args()
 with zipfile.ZipFile(args.analog_yaw_zip) as upstream:
-    for name in ('AC8HOTAS-0.3.0.zip','AC8HOTAS-0.3.0-with-AC8AnalogYaw-0.1.3.zip'):
+    for name in ('AC8HOTAS-0.3.1.zip','AC8HOTAS-0.3.1-with-AC8AnalogYaw-0.1.3.zip'):
         with zipfile.ZipFile(root/'dist'/name) as z:
             assert z.testzip() is None
             names=z.namelist()
@@ -29,7 +29,7 @@ with zipfile.ZipFile(args.analog_yaw_zip) as upstream:
                 assert len(yaw)==6
                 for n in yaw: assert z.read(n)==upstream.read(n), 'Bundled dependency changed: '+n
             else: assert not yaw
-with zipfile.ZipFile(root/'dist/AC8HOTAS-0.3.0-source.zip') as z:
+with zipfile.ZipFile(root/'dist/AC8HOTAS-0.3.1-source.zip') as z:
     assert z.testzip() is None
     assert not any(n.endswith(('.dll','.exe','.log','.bak')) for n in z.namelist())
 for line in (root/'dist/SHA256SUMS.txt').read_text().splitlines():

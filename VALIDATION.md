@@ -22,7 +22,7 @@ and tracing are absent.
 
 AC8AnalogYaw 0.1.3 was tested separately during development. Packaging copies
 its release files unchanged. A clean-folder installation smoke test of the
-combined 0.3.0 package and a fresh full-install smoke test remain to be done
+combined 0.3.1 package and a fresh full-install smoke test remain to be done
 before publication.
 
 ## Automated coverage
@@ -51,3 +51,14 @@ unbound; source, mod-only, bundled yaw and fresh-install archive checks pass.
 The user confirmed both the earlier keyboard prototype and the integrated
 HOTAS bindings work in flight on the VPC setup. Routine per-selection logging
 was then removed; startup/configuration and error messages remain.
+
+## 0.3.1 multiple bindings
+
+Two Weapon bindings on the VPC throttle were confirmed working in game.
+Mock regressions exercise distinct native slot writes, capacity rejection before
+mutation, and clearing removed secondary bindings. Digital camera experiments
+were removed: compatible profiles expose only one slot per camera axis.
+Release preparation on 26 October 2026 passed test_mapper.py, test_weapons.py,
+build/test-weapons.exe, test_package.py and test_full_package.py, plus git diff
+--check. All four 0.3.1 archives and SHA256SUMS.txt were generated. Fresh-install
+in-game smoke testing of these archives remains outstanding.

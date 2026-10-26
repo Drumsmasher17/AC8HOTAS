@@ -11,7 +11,7 @@ mods: AC8HOTAS handles bindings, and AC8AnalogYaw enables proportional yaw.
 A HOTAS-only download is also available for users who already have analog yaw
 or prefer the game's existing yaw behaviour.
 
-**New to UE4SS?** Choose `AC8HOTAS-0.3.0-full-install.zip`, which also includes
+**New to UE4SS?** Choose `AC8HOTAS-0.3.1-full-install.zip`, which also includes
 the tested loader and enables both mods. Follow its `INSTALL-FULL.md`: copy its
 Game folder into the game installation, launch, configure bindings and press F5.
 Use this package only for a fresh installation without an existing loader.
@@ -44,6 +44,22 @@ SelectMissiles = { device="{detected GUID}", input="Button14" },
 SelectSpecialWeapon1 = { device="{detected GUID}", input="Button15" },
 SelectSpecialWeapon2 = { device="{detected GUID}", input="Button16" },
 ```
+
+To bind multiple buttons to one action, use a list (the same format works for
+other actions):
+
+```lua
+Target = {
+    { device="{detected GUID}", input="Button1" },
+    { device="{detected GUID}", input="Button2" },
+},
+```
+
+Use your detected device GUID(s). Add another inner line for each extra binding.
+Do not repeat `Target =` as separate entries: Lua keeps only the last entry.
+Available native game profile slots limit the number of bindings per action.
+If no profile has enough slots, the whole configuration is rejected before
+mappings are changed. Existing single-binding entries continue to work.
 
 - `nil` leaves an action unbound.
 - `invert=true` reverses an axis.

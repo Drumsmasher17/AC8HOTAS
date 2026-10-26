@@ -19,7 +19,16 @@ function M.validate(config,catalog)
         devices[d.id]=d; products[d.product]=(products[d.product] or 0)+1
     end
     local grouped,selections={},{}
-    for action,b in pairs(config.bindings) do
+    for action,value in pairs(config.bindings) do
+        assert(type(value)=='table','Binding must be a table: '..tostring(action))
+        local bindings=value.device and {value} or value
+        if not value.device then
+            assert(#bindings>0,'Binding list must not be empty: '..tostring(action))
+            for k in pairs(bindings) do
+                assert(type(k)=='number' and k%1==0 and k>=1 and k<=#bindings,'Binding list must be a dense array: '..tostring(action))
+            end
+        end
+        for _,b in ipairs(bindings) do
         local selection=M.selectionActions[action]
         assert(M.actions[action] or selection,'Unsupported action: '..tostring(action))
         assert(type(b)=='table','Binding must be a table: '..action)
@@ -51,9 +60,13 @@ function M.validate(config,catalog)
             selections[#selections+1]={slot=selection,device=d.id,input=input,index=index,action=action}
         else
             grouped[d.id]=grouped[d.id] or {device=d,bindings={}}
-            grouped[d.id].bindings[M.actions[action]]={input=input,invert=b.invert or false,action=action,
+            local item=M.actions[action]
+            local list=grouped[d.id].bindings[item] or {}
+            grouped[d.id].bindings[item]=list
+            list[#list+1]={input=input,invert=b.invert or false,action=action,
                 mode=mode,option=(mode=='zero_to_one' and 4 or 0)+(b.invert and 1 or 0),index=index}
         end
+    end
     end
     table.sort(selections,function(a,b) return a.slot<b.slot end)
     return grouped,products,selections
@@ -87,14 +100,14 @@ function M.apply(subsystem,grouped,products,owned,log)
     end)
     local selected,used,nextOwned={},{},{}
     local function fits(p,g)
-        for item in pairs(g.bindings) do if not p.items[item] or #p.items[item]==0 then return false end end
+        for item,list in pairs(g.bindings) do if not p.items[item] or #p.items[item]<#list then return false end end
         return true
     end
     local function missingActions(p,g)
         local missing={}
         for _,item in ipairs(keys(g.bindings)) do
-            if not p.items[item] or #p.items[item]==0 then
-                missing[#missing+1]=g.bindings[item].action
+            if not p.items[item] or #p.items[item]<#g.bindings[item] then
+                missing[#missing+1]=g.bindings[item][1].action
             end
         end
         return missing
@@ -124,7 +137,7 @@ function M.apply(subsystem,grouped,products,owned,log)
         end
         if not name then
             local requested,checked={},{}
-            for _,item in ipairs(keys(g.bindings)) do requested[#requested+1]=g.bindings[item].action end
+            for _,item in ipairs(keys(g.bindings)) do requested[#requested+1]=g.bindings[item][1].action end
             for _,n in ipairs(keys(profiles)) do
                 local p=profiles[n]
                 if n~='Default' then
@@ -133,7 +146,7 @@ function M.apply(subsystem,grouped,products,owned,log)
                 end
             end
             error('No compatible flight-stick profile slot for '..g.device.name..' ('..g.device.product..'); requested actions: '..
-                table.concat(requested,', ')..'. Checked: '..table.concat(checked,'; ')..'. No mappings applied by this attempt.')
+                table.concat(requested,', ')..'. Checked: '..table.concat(checked,'; ')..'. Missing actions may have too few native binding slots. No mappings applied by this attempt.')
         end
         assert(not used[name],'Profile allocation collision')
         selected[id]=name; used[name]=true; nextOwned[id]={name=name,product=g.device.product}
@@ -166,10 +179,11 @@ function M.apply(subsystem,grouped,products,owned,log)
         local p=profiles[selected[id]]
         add(p.data,'DeviceID_Win',grouped[id].device.product)
         for _,item in ipairs(keys(grouped[id].bindings)) do
-            local b=grouped[id].bindings[item]
-            add(p.items[item][1],'InputType',b.input)
-            add(p.items[item][1],'AxisInputOption',b.option)
-            add(p.items[item][1],'ButtonIndex',b.index)
+            for slot,b in ipairs(grouped[id].bindings[item]) do
+            add(p.items[item][slot],'InputType',b.input)
+            add(p.items[item][slot],'AxisInputOption',b.option)
+            add(p.items[item][slot],'ButtonIndex',b.index)
+            end
         end
     end
     local ok,err=pcall(function()

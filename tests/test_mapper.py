@@ -226,3 +226,26 @@ LoopInGameThreadAfterFrames=function(_,fn) tick=fn end
     cfg.write_text('return {version=1,bindings={}}')
     lua.execute('rejectPrepare=false; reloadKey(); tick(); assert(commits==2)')
 print('PASS: multiple devices, inversion, neutral unassigned actions, invalid/missing/duplicate rejection, removal/re-add, explicit-only reload, lifecycle uses last accepted config.')
+
+# Multiple bindings use distinct native slots; capacity failures precede all edits.
+multi=LuaRuntime(unpack_returned_tuples=True)
+multi.execute(SETUP)
+multi.globals().mapper=multi.execute('return assert(loadfile(...))()',str(ROOT/'mod/Scripts/mapper.lua'))
+multi.execute('''
+catalog.devices[1].inputs={{token='Button21'},{token='Button1'}}
+config.bindings={Weapon={{device='d1',input='Button21'},{device='d1',input='Button1'}}}
+local first={InputType=0,ButtonIndex=0,AxisInputOption=0,EnableButtonIndex=0,DisableButtonIndex=0}
+local second={InputType=0,ButtonIndex=0,AxisInputOption=0,EnableButtonIndex=0,DisableButtonIndex=0}
+a.DeviceInputItemMap[#a.DeviceInputItemMap+1]={2,{InputSettings=wrap({{1,first},{2,second}})}}
+local g,p=mapper.validate(config,catalog)
+local owned=mapper.apply(sub,g,p,{},silent)
+assert(first.ButtonIndex==21 and second.ButtonIndex==1 and first.InputType==12 and second.InputType==12)
+config.bindings.Weapon[3]={device='d1',input='Button1'}
+g,p=mapper.validate(config,catalog)
+assert(not pcall(mapper.apply,sub,g,p,owned,silent))
+assert(first.ButtonIndex==21 and second.ButtonIndex==1 and a.DeviceID_Win=='0x81963344')
+config.bindings.Weapon={device='d1',input='Button21'}
+g,p=mapper.validate(config,catalog); mapper.apply(sub,g,p,owned,silent)
+assert(first.ButtonIndex==21 and second.InputType==0 and second.ButtonIndex==0)
+''')
+print('PASS: multiple bindings, capacity rejection before mutation, and clearing removed slots.')

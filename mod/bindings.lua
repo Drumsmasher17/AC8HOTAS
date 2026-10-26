@@ -7,6 +7,18 @@
 -- Hat example: HatUp = { device="{detected GUID}", input="POV1_Up" },
 -- Button numbers start at 1. Hats use POV1_Up/Down/Left/Right; only POV1 is supported.
 
+-- MULTIPLE BUTTONS FOR ONE ACTION
+-- Any action can use a list of bindings. For example:
+--
+-- Target = {
+--     { device = "{detected GUID}", input = "Button1" },
+--     { device = "{detected GUID}", input = "Button2" },
+-- },
+--
+-- Replace Target with the action you want, and use your detected device GUID(s).
+-- Both buttons trigger that action. Add more by copying a line inside the list.
+-- Keep the braces and commas as shown. Available game profile slots limit the number of bindings.
+
 -- Pitch/Roll/Yaw/Throttle/CameraPitch/CameraYaw require axes; other actions require buttons/hats.
 
 -- Axis invert=true reverses direction; buttons/hats do not use invert or mode.
@@ -17,6 +29,9 @@
 -- then assigns clean compatible game profile slots from this file. Nothing is saved.
 -- A compatible slot must still exist for each action you bind; the mod can reuse
 -- another built-in flight-stick slot when a device's own template lacks an action.
+
+-- If the files isn't being loaded, or binds aren't working, chances are, there is a stray { or , somewhere
+-- To fix, just copy your file into GPT and ask it "why isn't my bindings.lua being read? please give back a whole fixed file"
 
 return {
     version = 1,

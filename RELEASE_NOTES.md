@@ -1,35 +1,49 @@
-# AC8HOTAS 0.3.0
+# AC8HOTAS 0.3.1
 
-Direct weapon selection is now configurable in `bindings.lua` alongside other
-controls: `SelectMissiles`, `SelectSpecialWeapon1`, `SelectSpecialWeapon2`.
-Each accepts the usual device GUID plus ButtonN or POV1 direction. F5 reloads
-them, and nil unbinds them. Existing configs remain valid. The download defaults
-all 52 controls to unbound. Close the game and replace the Scripts folder to
-update; keep your bindings.lua and add the three new entries if wanted.
+## Changes
 
-Direct selections use an internal nonexclusive DirectInput reader and call the
-game's existing handlers on the game thread. They do not generate keyboard
-events. No separate AC8WeaponSelect installation is needed. If you tested that
-prototype, disable it before using these actions to prevent duplicate requests.
+- Bind multiple buttons or hat directions to the same action using a list in
+  `bindings.lua`. Bindings can use the same device or different devices.
+- Keep existing single-binding configurations unchanged.
+- Add a copyable multiple-binding example and explain braces, commas and why
+  repeating an action name overwrites its earlier binding in Lua.
+- Add troubleshooting guidance for malformed `bindings.lua` files.
+- Check that a native game profile has enough slots for every requested binding
+  before applying any mappings. Removed bindings are cleared on reload.
 
-The user confirmed the integrated bindings work in flight on the VPC setup.
-Config validation, reload/retention, native parsing, edge detection, packaging
-and hardware acquisition also passed automated or local checks. Routine
-per-selection diagnostic logging has been removed; startup, configuration and
-error messages remain.
+## Example
 
-## Update and downloads
+```lua
+Target = {
+    { device = "{detected GUID}", input = "Button1" },
+    { device = "{detected GUID}", input = "Button2" },
+},
+```
 
-Keep your existing bindings.lua when updating from 0.2.0 or earlier. Replace
-the Scripts folder from the 0.3.0 mod-only download, then restart the game.
-F5 reloads bindings after edits; it does not reload updated scripts.
+Replace Target with the desired action and use your detected device GUID(s).
+Add more bindings by copying a line inside the list. Native game profile slots
+limit the number of bindings; not every action supports the same number.
+An unsupported configuration is rejected as a whole. A rejected startup config
+can leave HOTAS controls unavailable until a valid config is applied.
 
-Recommended: AC8HOTAS-0.3.0-with-AC8AnalogYaw-0.1.3.zip. HOTAS-only and
-fresh-install packages are also provided. The full-install package includes
-the loader and is intended for installations without an existing UE4SS setup.
+## Updating
+
+Close the game, replace the Scripts folder, then restart. Keep your existing
+`bindings.lua`; copy the example above when adding multiple bindings. F5 reloads
+configuration edits during play, but does not reload updated scripts.
 The bundled AC8AnalogYaw 0.1.3 files are unchanged.
 
-The three new selections accept buttons and first-POV directions. Existing
-native profile actions still cannot distinguish identical product IDs; direct
-selection actions use device instance IDs. Physical POV hats and clean-folder
-installation of the release bundles still need in-game testing.
+Downloads:
+- `AC8HOTAS-0.3.1-with-AC8AnalogYaw-0.1.3.zip`: recommended mod-only bundle.
+- `AC8HOTAS-0.3.1.zip`: HOTAS only; requires UE4SS separately.
+- `AC8HOTAS-0.3.1-full-install.zip`: includes the loader for fresh installations.
+- `AC8HOTAS-0.3.1-source.zip`: source and build instructions.
+
+## Validation
+
+Two Weapon bindings were confirmed working in game on the VPC throttle.
+Automated checks cover configuration validation, multiple native slots,
+capacity rejection before mutation, clearing removed bindings, reload/lifecycle
+behaviour, and direct weapon selection. Release archive checks verify layout,
+default unbound controls, dependency integrity and checksums. Fresh-install
+smoke testing of the packaged downloads remains outstanding.
