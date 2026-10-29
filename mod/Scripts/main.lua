@@ -1,4 +1,4 @@
--- AC8HOTAS 0.3.1: session profiles and direct selection share explicit config reload.
+-- AC8HOTAS 0.3.2: session profiles and direct selection share explicit config reload.
 local dir=assert(debug.getinfo(1,'S').source:sub(2):match('^(.*[/\\])'))
 local root=dir..'../'
 local mapper=assert(loadfile(dir..'mapper.lua'))()
@@ -136,4 +136,4 @@ LoopInGameThreadAfterFrames(1,function()
     end)
     if not ok then failed=true; saveSession(); log('Stopped after lifecycle error: '..tostring(err)) end
 end)
-log('AC8HOTAS 0.3.1 ready. Startup applies bindings; F5 reloads controls and direct weapon selections from bindings.lua.')
+log('AC8HOTAS 0.3.2 ready. Startup applies bindings; F5 reloads controls and direct weapon selections from bindings.lua.')

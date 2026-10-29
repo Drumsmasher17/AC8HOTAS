@@ -112,29 +112,46 @@ function M.apply(subsystem,grouped,products,owned,log)
         end
         return missing
     end
+    -- Find a complete matching before touching reflected data. A flexible device
+    -- must be movable when a later device needs its only compatible profile.
+    local candidates={}
     for _,id in ipairs(keys(grouped)) do
-        local g=grouped[id]; local name
-        -- Reuse the prior allocation when it still has every requested action.
-        local prior=owned[id]
-        if prior and profiles[prior.name] and fits(profiles[prior.name],g) and not used[prior.name] then
-            name=prior.name
-        end
-        -- Prefer the device's own native template if it supports this config.
-        if not name then
-            for _,n in ipairs(keys(profiles)) do
-                local p=profiles[n]
-                if n~='Default' and p.id==g.device.product and not used[n] and fits(p,g) then name=n; break end
+        local g=grouped[id]; local list,seen={},{}
+        local function offer(name)
+            local p=name and profiles[name]
+            if p and name~='Default' and not seen[name] and fits(p,g) then
+                list[#list+1]=name; seen[name]=true
             end
         end
-        -- The bindings file owns the Windows flight-stick map for this session.
-        -- Any compatible native slot can be repurposed when the device template
-        -- lacks an action (for example, Missile or Platform on some throttles).
-        if not name then
-            for _,n in ipairs(keys(profiles)) do
-                local p=profiles[n]
-                if n~='Default' and not used[n] and fits(p,g) then name=n; break end
+        offer(owned[id] and owned[id].name)
+        for _,name in ipairs(keys(profiles)) do
+            if profiles[name].id==g.device.product then offer(name) end
+        end
+        for _,name in ipairs(keys(profiles)) do offer(name) end
+        candidates[id]=list
+    end
+    local function allocate(id,visited)
+        -- Keep existing allocations where an unused compatible slot suffices.
+        for _,name in ipairs(candidates[id]) do
+            if not visited[name] and not used[name] then
+                visited[name]=true; selected[id]=name; used[name]=id
+                return true
             end
         end
+        for _,name in ipairs(candidates[id]) do
+            if not visited[name] then
+                visited[name]=true
+                if allocate(used[name],visited) then
+                    selected[id]=name; used[name]=id
+                    return true
+                end
+            end
+        end
+        return false
+    end
+    for _,id in ipairs(keys(grouped)) do
+        local g=grouped[id]
+        local name=allocate(id,{}) and selected[id]
         if not name then
             local requested,checked={},{}
             for _,item in ipairs(keys(g.bindings)) do requested[#requested+1]=g.bindings[item][1].action end
@@ -148,8 +165,9 @@ function M.apply(subsystem,grouped,products,owned,log)
             error('No compatible flight-stick profile slot for '..g.device.name..' ('..g.device.product..'); requested actions: '..
                 table.concat(requested,', ')..'. Checked: '..table.concat(checked,'; ')..'. Missing actions may have too few native binding slots. No mappings applied by this attempt.')
         end
-        assert(not used[name],'Profile allocation collision')
-        selected[id]=name; used[name]=true; nextOwned[id]={name=name,product=g.device.product}
+    end
+    for _,id in ipairs(keys(grouped)) do
+        nextOwned[id]={name=selected[id],product=grouped[id].device.product}
     end
     local edits={}
     local function add(obj,field,value)

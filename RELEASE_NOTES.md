@@ -1,49 +1,31 @@
-# AC8HOTAS 0.3.1
+# AC8HOTAS 0.3.2 — Controller profile allocation fix
 
 ## Changes
 
-- Bind multiple buttons or hat directions to the same action using a list in
-  `bindings.lua`. Bindings can use the same device or different devices.
-- Keep existing single-binding configurations unchanged.
-- Add a copyable multiple-binding example and explain braces, commas and why
-  repeating an action name overwrites its earlier binding in Lua.
-- Add troubleshooting guidance for malformed `bindings.lua` files.
-- Check that a native game profile has enough slots for every requested binding
-  before applying any mappings. Removed bindings are cleared on reload.
+- Fix configuration reloads being rejected when one controller takes the only
+  native game profile that supports another controller's bindings.
+- Allocate compatible profiles across all configured devices, moving earlier
+  assignments when necessary. Device GUID order no longer determines whether
+  an otherwise compatible configuration is accepted.
+- Preserve previous and native-profile assignments where possible. Configurations
+  that exceed available profile capacity are still rejected before mappings change.
+- Add a regression test for a flexible stick preceding a throttle that requires
+  two Weapon binding slots, including existing profile ownership.
 
-## Example
-
-```lua
-Target = {
-    { device = "{detected GUID}", input = "Button1" },
-    { device = "{detected GUID}", input = "Button2" },
-},
-```
-
-Replace Target with the desired action and use your detected device GUID(s).
-Add more bindings by copying a line inside the list. Native game profile slots
-limit the number of bindings; not every action supports the same number.
-An unsupported configuration is rejected as a whole. A rejected startup config
-can leave HOTAS controls unavailable until a valid config is applied.
+Firmware updates or device re-registration can change GUIDs and expose this
+issue. Affected users may see "No compatible flight-stick profile slot" and
+"profile already allocated" despite their controllers working in Windows.
+This update fixes profile allocation; changed GUIDs must still be updated in
+bindings.lua using the detected device list.
 
 ## Updating
 
-Close the game, replace the Scripts folder, then restart. Keep your existing
-`bindings.lua`; copy the example above when adding multiple bindings. F5 reloads
-configuration edits during play, but does not reload updated scripts.
-The bundled AC8AnalogYaw 0.1.3 files are unchanged.
-
-Downloads:
-- `AC8HOTAS-0.3.1-with-AC8AnalogYaw-0.1.3.zip`: recommended mod-only bundle.
-- `AC8HOTAS-0.3.1.zip`: HOTAS only; requires UE4SS separately.
-- `AC8HOTAS-0.3.1-full-install.zip`: includes the loader for fresh installations.
-- `AC8HOTAS-0.3.1-source.zip`: source and build instructions.
+Close the game and replace the Scripts folder from the mod-only download.
+Keep your existing bindings.lua. Restart the game to load the updated scripts;
+F5 reloads bindings only. The bundled AC8AnalogYaw 0.1.3 files are unchanged.
 
 ## Validation
 
-Two Weapon bindings were confirmed working in game on the VPC throttle.
-Automated checks cover configuration validation, multiple native slots,
-capacity rejection before mutation, clearing removed bindings, reload/lifecycle
-behaviour, and direct weapon selection. Release archive checks verify layout,
-default unbound controls, dependency integrity and checksums. Fresh-install
-smoke testing of the packaged downloads remains outstanding.
+The regression reproduces the rejection with the previous allocator and passes
+with the fix. Automated mapper and weapon-selection checks pass. In-game and
+clean-install validation of the 0.3.2 release archives remains outstanding.

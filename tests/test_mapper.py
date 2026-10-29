@@ -249,3 +249,25 @@ g,p=mapper.validate(config,catalog); mapper.apply(sub,g,p,owned,silent)
 assert(first.ButtonIndex==21 and second.InputType==0 and second.ButtonIndex==0)
 ''')
 print('PASS: multiple bindings, capacity rejection before mutation, and clearing removed slots.')
+
+# Firmware GUID ordering: flexible stick sorts before a throttle that needs
+# the only profile with two Weapon slots. Existing ownership is a preference.
+allocation=LuaRuntime(unpack_returned_tuples=True)
+allocation.execute(SETUP)
+allocation.globals().mapper=allocation.execute('return assert(loadfile(...))()',str(ROOT/'mod/Scripts/mapper.lua'))
+allocation.execute('''
+local first={InputType=0,ButtonIndex=0,AxisInputOption=0,EnableButtonIndex=0,DisableButtonIndex=0}
+local second={InputType=0,ButtonIndex=0,AxisInputOption=0,EnableButtonIndex=0,DisableButtonIndex=0}
+a.DeviceInputItemMap[#a.DeviceInputItemMap+1]={2,{InputSettings=wrap({{1,first},{2,second}})}}
+catalog.devices[2].inputs={{token='Button21'},{token='Button1'}}
+config.bindings={Pitch={device='d1',input='X'},Weapon={
+ {device='d2',input='Button21'},{device='d2',input='Button1'}}}
+for _,ownership in ipairs({{}, {d1={name='A',product=catalog.devices[1].product}}}) do
+ local g,p=mapper.validate(config,catalog)
+ local result=mapper.apply(sub,g,p,ownership,silent)
+ assert(result.d1.name=='B' and result.d2.name=='A')
+ assert(first.ButtonIndex==21 and second.ButtonIndex==1)
+ assert(b.slots[43].InputType==1)
+end
+''')
+print('PASS: GUID order and prior ownership cannot starve a device requiring the only multi-bind profile.')

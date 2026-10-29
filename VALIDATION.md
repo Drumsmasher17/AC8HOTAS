@@ -62,3 +62,13 @@ Release preparation on 26 October 2026 passed test_mapper.py, test_weapons.py,
 build/test-weapons.exe, test_package.py and test_full_package.py, plus git diff
 --check. All four 0.3.1 archives and SHA256SUMS.txt were generated. Fresh-install
 in-game smoke testing of these archives remains outstanding.
+
+## 0.3.2 profile allocation
+
+The new regression reproduces the old allocator failure when a flexible device
+sorts before a controller requiring the only profile with two Weapon slots.
+The matching allocator passes with both fresh and existing ownership.
+In-game and clean-install validation of the release archives remains outstanding.
+Automated verification passed on 29 October 2026: test_mapper.py,
+test_weapons.py, build/test-weapons.exe, test_package.py and
+test_full_package.py. All four 0.3.2 archives and SHA256SUMS.txt were generated.

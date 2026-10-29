@@ -34,15 +34,15 @@ catalogs/logs. Creating packages does not publish or upload anything.
 
 ## GitHub
 
-Commit the reviewed source and create release tag `v0.3.1`. Use
+Commit the reviewed source and create release tag `v0.3.2`. Use
 `RELEASE_NOTES.md` for the release description. Attach the three mod-only ZIPs
 and `SHA256SUMS.txt`. The explicit source ZIP is optional but useful for sites
 that do not generate source archives.
 
 ## Nexus Mods
 
-Use `AC8HOTAS-0.3.1-with-AC8AnalogYaw-0.1.3.zip` as the recommended/main
-download. Offer `AC8HOTAS-0.3.1.zip` as the HOTAS-only alternative. Provide
+Use `AC8HOTAS-0.3.2-with-AC8AnalogYaw-0.1.3.zip` as the recommended/main
+download. Offer `AC8HOTAS-0.3.2.zip` as the HOTAS-only alternative. Provide
 `INSTALL.md` and list UE4SS as a requirement (included only in the full-install
 download). Link the analog-yaw project for its source and separate updates.
 The full-install ZIP is an option for a fresh installation only; users with an
