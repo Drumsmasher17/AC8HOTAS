@@ -1,5 +1,6 @@
 param(
-    [string]$AnalogYawZip = (Join-Path $PSScriptRoot '..\AC8AnalogYaw\dist\AC8AnalogYaw-0.1.3.zip')
+    [string]$AnalogYawZip = (Join-Path $PSScriptRoot '..\AC8AnalogYaw\dist\AC8AnalogYaw-0.1.3.zip'),
+    [switch]$IncludeWizard = $true
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression
@@ -15,6 +16,11 @@ foreach ($file in @('README.md','LICENSE','INSTALL.md','THIRD_PARTY_NOTICES.md',
 }
 $hotas['INSTALL.md'] = Join-Path $PSScriptRoot 'INSTALL.md'
 $hotas['RELEASE_NOTES.md'] = Join-Path $PSScriptRoot 'RELEASE_NOTES.md'
+if ($IncludeWizard) {
+    $wizardExe = Join-Path $dist 'AC8HOTAS-Setup.exe'
+    if (-not (Test-Path -LiteralPath $wizardExe)) { throw 'Run package-wizard.ps1 first.' }
+    $hotas['AC8HOTAS/AC8HOTAS-Setup.exe'] = $wizardExe
+}
 foreach ($path in $hotas.Values) { if (-not (Test-Path -LiteralPath $path)) { throw "Missing release input: $path. Run build.cmd first." } }
 
 function Write-Package($Name, $Files, $ExtraEntries) {
@@ -58,6 +64,13 @@ $sourceFiles = @('README.md','INSTALL.md','RELEASE_NOTES.md','PUBLISHING.md','VA
     'package-full.ps1','tests/test_full_package.py','full-install/INSTALL-FULL.md',
     'full-install/LOADER-PROVENANCE.md','full-install/UE4SS-LICENSE.txt','full-install/UE4SS-settings.ini')
 foreach ($file in $scripts) { if ($file.EndsWith('.lua')) { $sourceFiles += 'mod/Scripts/'+$file } }
+$sourceFiles += @('.gitattributes','build-wizard.cmd','package-wizard.ps1','wizard/Cargo.toml','wizard/Cargo.lock',
+    'generate-wizard-notices.ps1','wizard/README.md','wizard/build.rs','wizard/.cargo/config.toml',
+    'tests/test_wizard_mapper.py','tests/test_wizard_package.py')
+foreach ($directory in @('wizard/src','wizard/ui','wizard/assets','wizard/screenshots')) {
+    $sourceFiles += Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot $directory) -File -Recurse |
+        ForEach-Object { $_.FullName.Substring($PSScriptRoot.Length + 1).Replace('\','/') }
+}
 foreach ($file in $sourceFiles) { $source['AC8HOTAS/'+$file] = Join-Path $PSScriptRoot $file }
 Write-Package 'AC8HOTAS-0.3.2-source.zip' $source @()
 $names = @('AC8HOTAS-0.3.2.zip','AC8HOTAS-0.3.2-with-AC8AnalogYaw-0.1.3.zip','AC8HOTAS-0.3.2-source.zip')

@@ -16,3 +16,12 @@ are retained beside that mod. AC8HOTAS's license does not replace these notices.
 
 ACE COMBAT and its assets belong to their respective owners. This is an
 unofficial community mod, not an official game update.
+
+## Native setup wizard
+
+The Rust wizard uses Slint 1.18.1 under the Slint Royalty-free Desktop, Mobile,
+and Web Applications License 2.0. Its terms are embedded in
+the generated `wizard/notices.html`; the app exposes the unmodified
+AboutSlint attribution widget through its top-level About action. The wizard's
+own Rust/Slint source and generic controller SVG artwork retain the project's
+CC0 dedication. Dependency code retains its respective licenses.

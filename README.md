@@ -22,6 +22,8 @@ from [AC8AnalogueYaw](https://github.com/Drumsmasher17/AC8AnalogueYaw).
 
 ## Configure your controls
 
+Use the [setup wizard](wizard/README.md) for guided configuration. It runs from beside `bindings.lua`; no additional runtime is needed.
+
 Start the game once with your controllers connected. AC8HOTAS lists detected
 devices and their available axes, buttons and hats at the bottom of its
 `bindings.lua`. All 52 action entries start unbound, grouped into flight buttons,

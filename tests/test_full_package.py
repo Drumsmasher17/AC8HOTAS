@@ -28,7 +28,10 @@ with zipfile.ZipFile(root/'dist/AC8HOTAS-0.3.2-full-install.zip') as z, zipfile.
     for option in ('EnableHotReloadSystem = 0', 'EnableAutoReloadingLuaMods = 0', 'ConsoleEnabled = 0', 'GuiConsoleEnabled = 0', 'bUseUObjectArrayCache = false'):
         assert option in settings
     assert 'MIT License' in z.read(prefix+'UE4SS/LICENSE').decode()
-    assert not any(n.endswith(('.log','.bak','.exe','devices.lua')) for n in names)
+    assert not any(n.endswith(('.log','.bak','devices.lua')) for n in names)
+    executables = [n for n in names if n.endswith('.exe')]
+    expected_wizard = prefix+'UE4SS/Mods/AC8HOTAS/AC8HOTAS-Setup.exe'
+    assert executables in ([], [expected_wizard]), 'Unexpected executable in full package'
 for line in (root/'dist/SHA256SUMS.txt').read_text().splitlines():
     digest, name = line.split('  ', 1)
     assert hashlib.sha256((root/'dist'/name).read_bytes()).hexdigest().upper() == digest
