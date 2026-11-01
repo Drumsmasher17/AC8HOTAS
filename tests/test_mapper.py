@@ -187,6 +187,7 @@ ModRef={GetSharedVariable=function(_,k) return shared[k] end,SetSharedVariable=f
 scans=0
 commits=0; selectionMask=0; rejectPrepare=false
 package.loadlib=function(_,symbol)
+ if symbol=='ac8_hotas_composite_install' then return function() return 1 end end
  if symbol=='ac8_weapon_prepare' then return function(sentinel) if not rejectPrepare then return sentinel end end end
  if symbol=='ac8_weapon_commit' then return function() commits=commits+1 end end
  if symbol=='ac8_weapon_poll' then return function(...)

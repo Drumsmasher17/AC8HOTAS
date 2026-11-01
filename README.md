@@ -11,7 +11,7 @@ mods: AC8HOTAS handles bindings, and AC8AnalogYaw enables proportional yaw.
 A HOTAS-only download is also available for users who already have analog yaw
 or prefer the game's existing yaw behaviour.
 
-**New to UE4SS?** Choose `AC8HOTAS-0.3.2-full-install.zip`, which also includes
+**New to UE4SS?** Choose `AC8HOTAS-0.3.3-full-install.zip`, which also includes
 the tested loader and enables both mods. Follow its `INSTALL-FULL.md`: copy its
 Game folder into the game installation, launch, configure bindings and press F5.
 Use this package only for a fresh installation without an existing loader.
@@ -92,12 +92,22 @@ their capabilities and binding values you can copy into the editable section abo
 
 ![Detected controllers with available axes, buttons, hats and copyable binding values](pic_2.png)
 
+### Composite controllers
+
+Some controllers expose two DirectInput collections under one product ID, such
+as a wheel base with a panel attached through it. AC8HOTAS gives every
+collection after the first a process-local product ID before the game
+enumerates devices, so both collections can be bound separately. The change
+exists only inside the game process: drivers, the registry, other games and
+system-wide controller settings are untouched. Each collection keeps its real
+DirectInput instance GUID, so physical input still reaches the same device.
+`COMPOSITE.log` in the mod folder records the split.
+
 ## Current limitations
 
 F5 refreshes the mod's device inventory and bindings. Assigning a newly
 connected device can still require a USB reconnect because the game may cache
 device discovery.
-Controllers sharing the same product ID cannot currently be mapped separately.
 Only the first POV hat is supported, and axis deadzones are not configurable.
 
 The list exposes the game's action names, but their effects depend on context.
