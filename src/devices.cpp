@@ -38,8 +38,17 @@ static BOOL CALLBACK device(const DIDEVICEINSTANCEW* info,void* context) {
         d->Release(); s.ok=false; return DIENUM_CONTINUE;
     }
     char id[16]; sprintf_s(id,"0x%08lX",info->guidProduct.Data1);
+    DIPROPGUIDANDPATH pathProperty{};
+    pathProperty.diph.dwSize=sizeof(pathProperty);
+    pathProperty.diph.dwHeaderSize=sizeof(DIPROPHEADER);
+    pathProperty.diph.dwObj=0;
+    pathProperty.diph.dwHow=DIPH_DEVICE;
+    std::string devicePath;
+    if(SUCCEEDED(d->GetProperty(DIPROP_GUIDANDPATH,&pathProperty.diph)))
+        devicePath=utf8(pathProperty.wszPath);
     s.out<<"{ id="<<quote(guid(info->guidInstance))<<", product="<<quote(id)
-         <<", name="<<quote(utf8(info->tszProductName))<<", axes="<<caps.dwAxes
+         <<", name="<<quote(utf8(info->tszProductName))<<", path="<<quote(devicePath)
+         <<", axes="<<caps.dwAxes
          <<", buttons="<<caps.dwButtons<<", povs="<<caps.dwPOVs<<", inputs={\n";
     const DWORD offsets[]={DIJOFS_X,DIJOFS_Y,DIJOFS_Z,DIJOFS_RX,DIJOFS_RY,DIJOFS_RZ,DIJOFS_SLIDER(0),DIJOFS_SLIDER(1)};
     const char* names[]={"X","Y","Z","Rx","Ry","Rz","Slider1","Slider2"};

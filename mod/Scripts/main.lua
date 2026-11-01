@@ -1,5 +1,9 @@
--- AC8HOTAS 0.3.2: session profiles and direct selection share explicit config reload.
+-- AC8HOTAS 0.3.3: composite controllers are split by DirectInput instance.
 local dir=assert(debug.getinfo(1,'S').source:sub(2):match('^(.*[/\\])'))
+-- Split collections that share a product ID before the scanner enumerates.
+local composite=assert(package.loadlib(dir..'ac8_hotas_composite_001.dll','ac8_hotas_composite_install'))
+local compositeStatus=composite()
+local compositeInstalled=compositeStatus==1 or compositeStatus==true
 local root=dir..'../'
 local mapper=assert(loadfile(dir..'mapper.lua'))()
 local profileDump=assert(loadfile(dir..'profile_dump.lua'))()
@@ -15,6 +19,7 @@ local function log(s)
     local f=io.open(logPath,'a'); if f then f:write(os.date('%H:%M:%S '),s,'\n'); f:close() end
     print('[AC8HOTAS] '..s..'\n')
 end
+log('Composite support: '..(compositeInstalled and 'active' or 'NOT ACTIVE (see COMPOSITE.log)'))
 local session=assert(loadfile(dir..'session.lua'))()(ModRef)
 local weapons=assert(loadfile(dir..'weapon_select.lua'))()(dir,log)
 local function read(path) local f=assert(io.open(path,'r')); local s=f:read('*a'); f:close(); return s end
@@ -136,4 +141,4 @@ LoopInGameThreadAfterFrames(1,function()
     end)
     if not ok then failed=true; saveSession(); log('Stopped after lifecycle error: '..tostring(err)) end
 end)
-log('AC8HOTAS 0.3.2 ready. Startup applies bindings; F5 reloads controls and direct weapon selections from bindings.lua.')
+log('AC8HOTAS 0.3.3 ready. Startup applies bindings; F5 reloads controls and direct weapon selections from bindings.lua.')

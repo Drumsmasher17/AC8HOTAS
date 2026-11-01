@@ -72,3 +72,20 @@ In-game and clean-install validation of the release archives remains outstanding
 Automated verification passed on 29 October 2026: test_mapper.py,
 test_weapons.py, build/test-weapons.exe, test_package.py and
 test_full_package.py. All four 0.3.2 archives and SHA256SUMS.txt were generated.
+
+## 0.3.3 composite controllers
+
+Hardware: MOZA AB6 FFB base with an MTQ panel on the same USB connection. The
+device exposes two DirectInput collections with product ID `0x1002346E`
+(instance GUIDs ending in `8001` and `8002`).
+- `test_composite.exe` verified that the splitter rewrites only the enumeration
+  copy of the second collection (`0x1003346E`), preserves the vendor half,
+  leaves the instance GUID usable with `CreateDevice`, and reports no duplicate
+  product IDs within one enumeration.
+- `test_scan_split.exe` loaded the production DLLs together: the generated
+  catalog contained `0x1002346E` and `0x1003346E`, each with its own HID path,
+  while both paths still report the real PID `0x1002`.
+- Binder `--selftest` matched both live HID collections to the correct catalog
+  entries by path while the raw HID product ID stayed identical.
+In-game binding confirmed on 2 November 2026: the MOZA AB6 base and the MTQ
+panel were bound separately and both worked.

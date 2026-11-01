@@ -2,10 +2,10 @@
 
 ## Choose a download
 
-- **Full installation:** `AC8HOTAS-0.3.2-full-install.zip` includes the loader
+- **Full installation:** `AC8HOTAS-0.3.3-full-install.zip` includes the loader
   and both mods for a fresh installation. Follow its root INSTALL-FULL.md instead
   of the mod-only steps below. Do not use it over an existing UE4SS installation.
-- **Recommended bundle:** AC8HOTAS 0.3.2 + AC8AnalogYaw 0.1.3. Device bindings
+- **Recommended bundle:** AC8HOTAS 0.3.3 + AC8AnalogYaw 0.1.3. Device bindings
   plus proportional yaw. The two mods remain separate and can be disabled independently.
 - **HOTAS only:** use this if you already have AC8AnalogYaw, or only want bindings.
 
@@ -28,6 +28,7 @@ ModRef shared variables. Other UE4SS builds have not been verified.
        Scripts/ac8_hotas_devices_001.dll
        Scripts/weapon_select.lua
        Scripts/ac8_hotas_weapons_001.dll
+       Scripts/ac8_hotas_composite_001.dll
      AC8AnalogYaw/             (recommended bundle only)
        Scripts/main.lua
        Scripts/ac8_analog_yaw_013.dll
@@ -93,8 +94,14 @@ or POV1_Up/Down/Left/Right. Only the first POV is supported by this route.
   lacks an action. If no slot exposes one of the requested actions, it rejects
   the config before changing the profile table. Include the full error from the
   newest log in a bug report. The action slot itself cannot be invented by the mod.
-- **Duplicate identical models:** separate devices with the same product ID are
-  currently rejected. The game chooses profiles by product ID.
+- **Composite controllers (one product ID, several collections):** AC8HOTAS
+  splits the later collections before the game enumerates them, inside the game
+  process only. `COMPOSITE.log` in the mod folder lists each split. If the game
+  still treats them as one device, include that log in a bug report. Use the
+  Binder build that matches collections by HID path so both appear separately.
+- **Two identical standalone controllers:** separate devices with the same
+  product ID are still rejected because neither can be identified reliably by
+  the game's product-based profiles.
 - **Wrong direction:** change the axis's `invert` value and press F5.
 - **Config error:** check the newest `AC8HOTAS/HOTAS-*.log`. Failed validation
   retains the previous mapping. A failed native property write requires a restart.

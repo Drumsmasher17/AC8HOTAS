@@ -6,7 +6,7 @@ p=argparse.ArgumentParser()
 p.add_argument('--analog-yaw-zip',type=Path,default=root.parent/'AC8AnalogYaw/dist/AC8AnalogYaw-0.1.3.zip')
 args=p.parse_args()
 with zipfile.ZipFile(args.analog_yaw_zip) as upstream:
-    for name in ('AC8HOTAS-0.3.2.zip','AC8HOTAS-0.3.2-with-AC8AnalogYaw-0.1.3.zip'):
+    for name in ('AC8HOTAS-0.3.3.zip','AC8HOTAS-0.3.3-with-AC8AnalogYaw-0.1.3.zip'):
         with zipfile.ZipFile(root/'dist'/name) as z:
             assert z.testzip() is None
             names=z.namelist()
@@ -15,6 +15,7 @@ with zipfile.ZipFile(args.analog_yaw_zip) as upstream:
             assert 'AC8HOTAS/Scripts/profile_dump.lua' in names
             assert 'AC8HOTAS/Scripts/weapon_select.lua' in names
             assert 'AC8HOTAS/Scripts/ac8_hotas_weapons_001.dll' in names
+            assert 'AC8HOTAS/Scripts/ac8_hotas_composite_001.dll' in names
             assert not any(n.endswith(('mods.txt','mods.json','devices.lua','.log','.bak','throttle_trace.lua')) for n in names)
             config=z.read('AC8HOTAS/bindings.lua').decode('utf-8')
             actions=re.findall(r'^    (\w+) = \d+,',z.read('AC8HOTAS/Scripts/actions.lua').decode(),re.M)
@@ -29,7 +30,7 @@ with zipfile.ZipFile(args.analog_yaw_zip) as upstream:
                 assert len(yaw)==6
                 for n in yaw: assert z.read(n)==upstream.read(n), 'Bundled dependency changed: '+n
             else: assert not yaw
-with zipfile.ZipFile(root/'dist/AC8HOTAS-0.3.2-source.zip') as z:
+with zipfile.ZipFile(root/'dist/AC8HOTAS-0.3.3-source.zip') as z:
     assert z.testzip() is None
     assert not any(n.endswith(('.dll','.exe','.log','.bak')) for n in z.namelist())
 for line in (root/'dist/SHA256SUMS.txt').read_text().splitlines():
